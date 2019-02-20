@@ -227,7 +227,8 @@ public class MainActivity extends AppCompatActivity {
       public void run() {
         try {
           if (watsonAssistantSession == null) {
-            ServiceCall<SessionResponse> call = watsonAssistant.createSession(new CreateSessionOptions.Builder().assistantId(mContext.getString(R.string.assistant_id)).build());
+            ServiceCall<SessionResponse> call = watsonAssistant.createSession(
+                    new CreateSessionOptions.Builder().assistantId(mContext.getString(R.string.assistant_id)).build());
             watsonAssistantSession = call.execute();
           }
 
@@ -239,6 +240,8 @@ public class MainActivity extends AppCompatActivity {
             .input(input)
             .sessionId(watsonAssistantSession.getSessionId())
             .build();
+
+          //blocking statement
           MessageResponse response = watsonAssistant.message(options).execute();
             Log.i(TAG, "run: "+response);
           final Message outMessage = new Message();

@@ -3,10 +3,10 @@
 
     <!--Watson Assistant service credentials-->
     <!-- REPLACE `ASSISTANT_ID_HERE` with ID of the Assistant to use -->
-    <string name="assistant_id">f573881d-7352-40f1-befd-4a8bc0e47e62</string>
+    <string name="assistant_id">92b124b3-95ac-4b92-8bc2-4e3aa9900bfb</string>
 
     <!-- REPLACE `ASSISTANT_API_KEY_HERE` with Watson Assistant service API Key-->
-    <string name="assistant_apikey">v8r1QQuojyb2I5Or2z_tYuALMY1R5K09sGZ0sPjfZr4E</string>
+    <string name="assistant_apikey">HBpajZz7K_mbUAgz22G6oHUof_1WrtFQUQluP-CVw-z8</string>
 
     <!-- REPLACE `ASSISTANT_URL_HERE` with Watson Assistant service URL-->
     <string name="assistant_url">https://gateway-lon.watsonplatform.net/assistant/api</string>
