@@ -100,8 +100,9 @@ public class MainActivity extends AppCompatActivity {
     }
 
     /**
-     *
-     * last modified: 21:00 21/03/2019 by J.Cistiakovas - added Firebase Auth
+     *  Method to be called
+     * created:
+     * last modified: 22:00 21/03/2019 by J.Cistiakovas - added anonymous sign in functionality
      */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -113,15 +114,37 @@ public class MainActivity extends AppCompatActivity {
         //Firebase anonymous Auth
         mAuth = FirebaseAuth.getInstance();
         mCurrentUser = mAuth.getCurrentUser();
+        //listener that listens for change in the Auth state
+        mAuthListener = new FirebaseAuth.AuthStateListener() {
+            @Override
+            public void onAuthStateChanged(@NonNull final FirebaseAuth firebaseAuth) {
+                FirebaseUser currentUser = firebaseAuth.getCurrentUser();
+                //check if user is already signed in
+                //TODO: retrieve/reset local information from the memory, e.g. score
+                if(currentUser == null){
+                    mAuth.signInAnonymously().addOnCompleteListener(MainActivity.this, new OnCompleteListener<AuthResult>() {
+                        @Override
+                        public void onComplete(@NonNull Task<AuthResult> task) {
+                            if(task.isSuccessful()){
+                                mCurrentUser = firebaseAuth.getCurrentUser();
+                                Toast.makeText(mContext,"Hello, " + mCurrentUser.getUid(), Toast.LENGTH_LONG).show();
+                            } else{
+                                Toast.makeText(mContext,"Authentication failed!", Toast.LENGTH_LONG).show();
+                                //TODO: fail the program or do something here
+                            }
+                        }
+                    });
+                } else {
+                    //user is signed in - happy days
+                    mCurrentUser = currentUser;
+                    Toast.makeText(mContext,"Hello, " + currentUser.getUid(), Toast.LENGTH_LONG).show();
+                    Log.d(TAG, "User already signed in. User id : " + mCurrentUser.getUid());
 
-        //check if user is already signed in
-        //TODO: retrieve/reset local information from the memory, e.g. score
-        if (mCurrentUser == null) {
-            //not signed in
-            signIn();
-        } else {
-            Log.d(TAG,"New user sign in: " + mCurrentUser.getUid());
-        }
+                }
+            }
+        };
+        mAuth.addAuthStateListener(mAuthListener);
+
 
         inputMessage = findViewById(R.id.message);
         btnSend = findViewById(R.id.btn_send);
@@ -192,6 +215,18 @@ public class MainActivity extends AppCompatActivity {
     }
 
     ;
+
+    /**
+     * Method to be called when activity is started
+     * created: 15:00 22/03/2019 by J.Cistiakovas
+     * last modified: -
+     */
+    @Override
+    public void onStart() {
+        super.onStart();
+        //initiate sign in check
+        mAuthListener.onAuthStateChanged(mAuth);
+    }
 
     // Speech-to-Text Record Audio permission
     @Override
@@ -432,38 +467,6 @@ public class MainActivity extends AppCompatActivity {
             }
         });
     }
-
-    /**
-     * signs in the user anonymously via the Firebase Auth
-     *
-     * @author Jevgenijus Cistiakovas
-     * created: 21:00 21/03/2019
-     * last modified: 21:00 21/03/2019 by J.Cistiakovas
-     */
-    private void signIn() {
-        mAuth.signInAnonymously()
-                .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
-                    @Override
-                    public void onComplete(@NonNull Task<AuthResult> task) {
-                        if (task.isSuccessful()) {
-                            // Sign in success, update UI with the signed-in user's information
-                            Log.d(TAG, "signInAnonymously:success");
-                            mCurrentUser = mAuth.getCurrentUser();
-                            Toast.makeText(MainActivity.this, "Hello, new user!",
-                                    Toast.LENGTH_LONG).show();
-                        } else {
-                            // If sign in fails, display a message to the user.
-                            Log.w(TAG, "signInAnonymously:failure", task.getException());
-
-                            Toast.makeText(MainActivity.this, "Authentication failed.",
-                                    Toast.LENGTH_LONG).show();
-                        }
-
-                        // ...
-                    }
-                });
-    }
-
 
 }
 
