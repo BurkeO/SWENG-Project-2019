@@ -27,6 +27,8 @@ import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 import com.ibm.watson.developer_cloud.android.library.audio.MicrophoneHelper;
 import com.ibm.watson.developer_cloud.android.library.audio.MicrophoneInputStream;
 import com.ibm.watson.developer_cloud.android.library.audio.StreamPlayer;
@@ -79,6 +81,16 @@ public class MainActivity extends AppCompatActivity {
     private FirebaseAuth mAuth;
     private FirebaseUser mCurrentUser;
     private FirebaseAuth.AuthStateListener mAuthListener;
+
+    //firebase realtime database
+    private FirebaseDatabase mDatabase;
+    private DatabaseReference mDatabaseRef;
+
+
+    //reference to a game obect
+    //private TuringGame currentGame;
+    private boolean isHumanGame;
+
 
     private void createServices() {
         watsonAssistant = new Assistant("2018-11-08", new IamOptions.Builder()
@@ -145,6 +157,14 @@ public class MainActivity extends AppCompatActivity {
         };
         mAuth.addAuthStateListener(mAuthListener);
 
+        //Firebase realtime dataase initialisation
+        mDatabase = FirebaseDatabase.getInstance();
+        mDatabaseRef = mDatabase.getReference();
+
+
+        //initiate game parameters
+        //TODO: change the initialisation
+        isHumanGame = true;
 
         inputMessage = findViewById(R.id.message);
         btnSend = findViewById(R.id.btn_send);
@@ -211,6 +231,7 @@ public class MainActivity extends AppCompatActivity {
         });
 
         createServices();
+        //TODO: find out why it is necessary to send an empty initial message?
         sendMessage();
     }
 
@@ -265,9 +286,47 @@ public class MainActivity extends AppCompatActivity {
                 MicrophoneHelper.REQUEST_PERMISSION);
     }
 
-    // Sending a message to Watson Assistant Service
-    private void sendMessage() {
+    /**
+     * Method to be called to send a message
+     * created: 22:00 23/03/2019 by J.Cistiakovas
+     * last modified: 22:00 23/03/2019 by J.Cistiakovas
+     */
+    private  void sendMessage(){
+        if(isHumanGame){
+            sendMessageHuman();
+        }else{
+            sendMessageBot();
+        }
+    }
 
+    /**
+     * Method that sends a message to a human play via Firebase realtime databse
+     * created: 22:00 23/03/2019 by J.Cistiakovas
+     * last modified: 22:00 23/03/2019 by J.Cistiakovas
+     */
+    private void sendMessageHuman(){
+        //create a new TuringMessage object using values from the editText box
+        String id = new Long((long) (Math.random() * 1000)).toString();
+        Message message = new Message();
+        message.setMessage(this.inputMessage.getText().toString().trim());
+        message.setId(id);
+        message.setSender("home");
+
+        //return if message is empty
+        if(message.getMessage().equals("")){
+            return;
+        }
+        //publish the message in an openchat
+        mDatabaseRef.child("openchat").child(message.getId()).setValue(message);
+        // add a message object to the list
+        messageArrayList.add(message);
+        this.inputMessage.setText("");
+        // make adapter to update its view and add a new message to the screen
+        mAdapter.notifyDataSetChanged();
+    }
+
+    // Sending a message to Watson Assistant Service
+    private void sendMessageBot() {
         final String inputmessage = this.inputMessage.getText().toString().trim();
         if (!this.initialRequest) {
             Message inputMessage = new Message();

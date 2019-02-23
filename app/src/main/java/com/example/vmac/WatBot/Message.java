@@ -7,7 +7,8 @@ package com.example.vmac.WatBot;
 import java.io.Serializable;
 
 public class Message implements Serializable {
-  String id, message;
+  private String id, message;
+  private String sender;
 
 
   public Message() {
@@ -18,6 +19,14 @@ public class Message implements Serializable {
     this.message = message;
 
 
+  }
+
+  public String getSender() {
+    return sender;
+  }
+
+  public void setSender(String sender) {
+    this.sender = sender;
   }
 
   public String getId() {

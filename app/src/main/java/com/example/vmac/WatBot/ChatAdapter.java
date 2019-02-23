@@ -47,10 +47,11 @@ public class ChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     return new ViewHolder(itemView);
   }
 
+  //gets view type of a specific item
   @Override
   public int getItemViewType(int position) {
     Message message = messageArrayList.get(position);
-    if (message.getId() != null && message.getId().equals("1")) {
+    if (message.getSender() != null && message.getSender().equals("home")) {
       return SELF;
     }
 
