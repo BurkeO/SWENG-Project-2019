@@ -2,10 +2,12 @@ package com.example.vmac.WatBot;
 
 /**
  * Created by VMac on 17/11/16.
+ * last modified: 23/03/2019 by J.Cistiakovas - modified getItemViewType
  */
 
 import android.graphics.Typeface;
 import android.support.v7.widget.RecyclerView;
+import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -19,12 +21,13 @@ public class ChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
 
   private int SELF = 100;
+  private String myId;
   private ArrayList<Message> messageArrayList;
 
 
-  public ChatAdapter(ArrayList<Message> messageArrayList) {
+  public ChatAdapter(ArrayList<Message> messageArrayList, String myId) {
     this.messageArrayList = messageArrayList;
-
+    this.myId = myId;
   }
 
   @Override
@@ -48,10 +51,14 @@ public class ChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
   }
 
   //gets view type of a specific item
+
+  /**
+   * last modified: 23/03/2019 by J.Cistiakovas - viewType recognises the owner of the message
+   * */
   @Override
   public int getItemViewType(int position) {
     Message message = messageArrayList.get(position);
-    if (message.getSender() != null && message.getSender().equals("home")) {
+    if (TextUtils.equals(message.getSender(), myId)) {
       return SELF;
     }
 

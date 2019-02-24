@@ -10,12 +10,14 @@ import android.net.NetworkInfo;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
@@ -27,6 +29,9 @@ import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.ChildEventListener;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.ibm.watson.developer_cloud.android.library.audio.MicrophoneHelper;
@@ -90,6 +95,7 @@ public class MainActivity extends AppCompatActivity {
     //reference to a game obect
     //private TuringGame currentGame;
     private boolean isHumanGame;
+    private int messageNum;
 
 
     private void createServices() {
@@ -114,7 +120,8 @@ public class MainActivity extends AppCompatActivity {
     /**
      *  Method to be called
      * created:
-     * last modified: 22:00 21/03/2019 by J.Cistiakovas - added anonymous sign in functionality
+     * last modified : 14:00 22/03/2019 by J.Cistiakovas - added database listener
+     * modified: 22:00 21/03/2019 by J.Cistiakovas - added anonymous sign in functionality
      */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -157,14 +164,49 @@ public class MainActivity extends AppCompatActivity {
         };
         mAuth.addAuthStateListener(mAuthListener);
 
-        //Firebase realtime dataase initialisation
+        //Firebase realtime database initialisation
         mDatabase = FirebaseDatabase.getInstance();
         mDatabaseRef = mDatabase.getReference();
+        mDatabaseRef.child("openchat").addChildEventListener(new ChildEventListener() {
+            @Override
+            public void onChildAdded(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
+                //retrieve the message from the datasnapshot
+                Message newMessage = dataSnapshot.getValue(Message.class);
+                //TODO: deal with double messages, sould not be much of  a problem if we start a new chat each time
+                if(TextUtils.equals(newMessage.getSender(),mAuth.getUid())){
+                    //don't add own message
+                    return;
+                }
+                messageArrayList.add(newMessage );
+                mAdapter.notifyDataSetChanged();
+            }
+
+            @Override
+            public void onChildChanged(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
+
+            }
+
+            @Override
+            public void onChildRemoved(@NonNull DataSnapshot dataSnapshot) {
+
+            }
+
+            @Override
+            public void onChildMoved(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
+
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+
+            }
+        });
 
 
         //initiate game parameters
         //TODO: change the initialisation
         isHumanGame = true;
+        messageNum = 0;
 
         inputMessage = findViewById(R.id.message);
         btnSend = findViewById(R.id.btn_send);
@@ -175,7 +217,7 @@ public class MainActivity extends AppCompatActivity {
         recyclerView = findViewById(R.id.recycler_view);
 
         messageArrayList = new ArrayList<>();
-        mAdapter = new ChatAdapter(messageArrayList);
+        mAdapter = new ChatAdapter(messageArrayList,mAuth.getUid());
         microphoneHelper = new MicrophoneHelper(this);
 
         LinearLayoutManager layoutManager = new LinearLayoutManager(this);
@@ -306,11 +348,11 @@ public class MainActivity extends AppCompatActivity {
      */
     private void sendMessageHuman(){
         //create a new TuringMessage object using values from the editText box
-        String id = new Long((long) (Math.random() * 1000)).toString();
+        String id = mAuth.getUid() + (new Integer(messageNum++).toString());
         Message message = new Message();
         message.setMessage(this.inputMessage.getText().toString().trim());
         message.setId(id);
-        message.setSender("home");
+        message.setSender(mAuth.getUid());
 
         //return if message is empty
         if(message.getMessage().equals("")){

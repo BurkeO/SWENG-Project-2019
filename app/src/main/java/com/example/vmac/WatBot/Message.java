@@ -1,7 +1,8 @@
 package com.example.vmac.WatBot;
 
 /**
- * Created by VMac on 17/11/16.
+ * Created by J.Cistiakovas on 22/03/2019
+ * last modified: 22/03/2019 by J.Cistiakovas
  */
 
 import java.io.Serializable;
