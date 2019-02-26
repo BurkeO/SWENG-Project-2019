@@ -178,7 +178,8 @@ public class MainActivity extends AppCompatActivity {
                     return;
                 }
                 messageArrayList.add(newMessage );
-                mAdapter.notifyDataSetChanged();
+                //mAdapter.notifyDataSetChanged();
+                scrollToMostRecentMessage();
             }
 
             @Override
@@ -364,7 +365,8 @@ public class MainActivity extends AppCompatActivity {
         messageArrayList.add(message);
         this.inputMessage.setText("");
         // make adapter to update its view and add a new message to the screen
-        mAdapter.notifyDataSetChanged();
+        //mAdapter.notifyDataSetChanged();
+        scrollToMostRecentMessage();
     }
 
     // Sending a message to Watson Assistant Service
@@ -420,17 +422,7 @@ public class MainActivity extends AppCompatActivity {
 
                         // speak the message
                         new SayTask().execute(outMessage.getMessage());
-
-                        runOnUiThread(new Runnable() {
-                            public void run() {
-                                mAdapter.notifyDataSetChanged();
-                                if (mAdapter.getItemCount() > 1) {
-                                    recyclerView.getLayoutManager().smoothScrollToPosition(recyclerView, null, mAdapter.getItemCount() - 1);
-
-                                }
-
-                            }
-                        });
+                        scrollToMostRecentMessage();
                     }
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -568,6 +560,31 @@ public class MainActivity extends AppCompatActivity {
             }
         });
     }
+
+    /**
+     * Method that scrolls the recycler view to the most recent message
+     * created: 26/03/2019 by J.Cistiakovas
+     * last modified: 26/03/2019 by J.Cistiakovas
+     */
+    private void scrollToMostRecentMessage(){
+        runOnUiThread(new Runnable() {
+            public void run() {
+                mAdapter.notifyDataSetChanged();
+                if (mAdapter.getItemCount() > 1) {
+                    recyclerView.getLayoutManager().smoothScrollToPosition(recyclerView, null, mAdapter.getItemCount() - 1);
+                    Log.d(TAG,"Scrolled to the most recent message!");
+                }
+
+            }
+        });
+    }
+
+/*    public void onPause() {
+
+        super.onPause();
+    }*/
+
+
 
 }
 
