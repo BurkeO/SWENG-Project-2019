@@ -96,6 +96,7 @@ public class MainActivity extends AppCompatActivity {
     //private TuringGame currentGame;
     private boolean isHumanGame;
     private int messageNum;
+    private String myId;
 
 
     /**
@@ -116,6 +117,12 @@ public class MainActivity extends AppCompatActivity {
         isHumanGame = true;
         messageNum = 0;
 
+        if(isHumanGame){
+            createFirebaseServices();
+        }else{
+            createWatsonServices();
+        }
+
         inputMessage = findViewById(R.id.message);
         btnSend = findViewById(R.id.btn_send);
         btnRecord = findViewById(R.id.btn_record);
@@ -125,7 +132,7 @@ public class MainActivity extends AppCompatActivity {
         recyclerView = findViewById(R.id.recycler_view);
 
         messageArrayList = new ArrayList<>();
-        mAdapter = new ChatAdapter(messageArrayList,mAuth.getUid());
+        mAdapter = new ChatAdapter(messageArrayList,myId);
         microphoneHelper = new MicrophoneHelper(this);
 
         LinearLayoutManager layoutManager = new LinearLayoutManager(this);
@@ -178,12 +185,6 @@ public class MainActivity extends AppCompatActivity {
                 recordMessage();
             }
         });
-
-        if(isHumanGame){
-            createFirebaseServices();
-        }else{
-            createWatsonServices();
-        }
         //TODO: find out why it is necessary to send an empty initial message?
         //sendMessage();
     }
@@ -513,6 +514,8 @@ public class MainActivity extends AppCompatActivity {
                 .apiKey(mContext.getString(R.string.STT_apikey))
                 .build());
         speechService.setEndPoint(mContext.getString(R.string.STT_url));
+
+        myId = "100";
     }
 
 
@@ -550,6 +553,7 @@ public class MainActivity extends AppCompatActivity {
             }
         };
         mAuth.addAuthStateListener(mAuthListener);
+        myId = mAuth.getUid();
 
         //Firebase realtime database initialisation
         mDatabase = FirebaseDatabase.getInstance();
