@@ -98,25 +98,6 @@ public class MainActivity extends AppCompatActivity {
     private int messageNum;
 
 
-    private void createServices() {
-        watsonAssistant = new Assistant("2018-11-08", new IamOptions.Builder()
-                .apiKey(mContext.getString(R.string.assistant_apikey))
-                .build());
-        watsonAssistant.setEndPoint(mContext.getString(R.string.assistant_url));
-
-        textToSpeech = new TextToSpeech();
-        textToSpeech.setIamCredentials(new IamOptions.Builder()
-                .apiKey(mContext.getString(R.string.TTS_apikey))
-                .build());
-        textToSpeech.setEndPoint(mContext.getString(R.string.TTS_url));
-
-        speechService = new SpeechToText();
-        speechService.setIamCredentials(new IamOptions.Builder()
-                .apiKey(mContext.getString(R.string.STT_apikey))
-                .build());
-        speechService.setEndPoint(mContext.getString(R.string.STT_url));
-    }
-
     /**
      *  Method to be called
      * created:
@@ -129,80 +110,6 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         mContext = getApplicationContext();
-
-        //Firebase anonymous Auth
-        mAuth = FirebaseAuth.getInstance();
-        mCurrentUser = mAuth.getCurrentUser();
-        //listener that listens for change in the Auth state
-        mAuthListener = new FirebaseAuth.AuthStateListener() {
-            @Override
-            public void onAuthStateChanged(@NonNull final FirebaseAuth firebaseAuth) {
-                FirebaseUser currentUser = firebaseAuth.getCurrentUser();
-                //check if user is already signed in
-                //TODO: retrieve/reset local information from the memory, e.g. score
-                if(currentUser == null){
-                    mAuth.signInAnonymously().addOnCompleteListener(MainActivity.this, new OnCompleteListener<AuthResult>() {
-                        @Override
-                        public void onComplete(@NonNull Task<AuthResult> task) {
-                            if(task.isSuccessful()){
-                                mCurrentUser = firebaseAuth.getCurrentUser();
-                                Toast.makeText(mContext,"Hello, " + mCurrentUser.getUid(), Toast.LENGTH_LONG).show();
-                            } else{
-                                Toast.makeText(mContext,"Authentication failed!", Toast.LENGTH_LONG).show();
-                                //TODO: fail the program or do something here
-                            }
-                        }
-                    });
-                } else {
-                    //user is signed in - happy days
-                    mCurrentUser = currentUser;
-                    Toast.makeText(mContext,"Hello, " + currentUser.getUid(), Toast.LENGTH_LONG).show();
-                    Log.d(TAG, "User already signed in. User id : " + mCurrentUser.getUid());
-
-                }
-            }
-        };
-        mAuth.addAuthStateListener(mAuthListener);
-
-        //Firebase realtime database initialisation
-        mDatabase = FirebaseDatabase.getInstance();
-        mDatabaseRef = mDatabase.getReference();
-        mDatabaseRef.child("openchat").addChildEventListener(new ChildEventListener() {
-            @Override
-            public void onChildAdded(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
-                //retrieve the message from the datasnapshot
-                Message newMessage = dataSnapshot.getValue(Message.class);
-                //TODO: deal with double messages, sould not be much of  a problem if we start a new chat each time
-                if(TextUtils.equals(newMessage.getSender(),mAuth.getUid())){
-                    //don't add own message
-                    return;
-                }
-                messageArrayList.add(newMessage );
-                //mAdapter.notifyDataSetChanged();
-                scrollToMostRecentMessage();
-            }
-
-            @Override
-            public void onChildChanged(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
-
-            }
-
-            @Override
-            public void onChildRemoved(@NonNull DataSnapshot dataSnapshot) {
-
-            }
-
-            @Override
-            public void onChildMoved(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
-
-            }
-
-            @Override
-            public void onCancelled(@NonNull DatabaseError databaseError) {
-
-            }
-        });
-
 
         //initiate game parameters
         //TODO: change the initialisation
@@ -240,7 +147,6 @@ public class MainActivity extends AppCompatActivity {
             Log.i(TAG, "Permission to record was already granted");
         }
 
-
         recyclerView.addOnItemTouchListener(new RecyclerTouchListener(getApplicationContext(), recyclerView, new ClickListener() {
             @Override
             public void onClick(View view, final int position) {
@@ -273,9 +179,13 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        createServices();
+        if(isHumanGame){
+            createFirebaseServices();
+        }else{
+            createWatsonServices();
+        }
         //TODO: find out why it is necessary to send an empty initial message?
-        sendMessage();
+        //sendMessage();
     }
 
     ;
@@ -585,6 +495,101 @@ public class MainActivity extends AppCompatActivity {
     }*/
 
 
+
+    private void createWatsonServices() {
+        watsonAssistant = new Assistant("2018-11-08", new IamOptions.Builder()
+                .apiKey(mContext.getString(R.string.assistant_apikey))
+                .build());
+        watsonAssistant.setEndPoint(mContext.getString(R.string.assistant_url));
+
+        textToSpeech = new TextToSpeech();
+        textToSpeech.setIamCredentials(new IamOptions.Builder()
+                .apiKey(mContext.getString(R.string.TTS_apikey))
+                .build());
+        textToSpeech.setEndPoint(mContext.getString(R.string.TTS_url));
+
+        speechService = new SpeechToText();
+        speechService.setIamCredentials(new IamOptions.Builder()
+                .apiKey(mContext.getString(R.string.STT_apikey))
+                .build());
+        speechService.setEndPoint(mContext.getString(R.string.STT_url));
+    }
+
+
+    private void createFirebaseServices(){
+        //Firebase anonymous Auth
+        mAuth = FirebaseAuth.getInstance();
+        mCurrentUser = mAuth.getCurrentUser();
+        //listener that listens for change in the Auth state
+        mAuthListener = new FirebaseAuth.AuthStateListener() {
+            @Override
+            public void onAuthStateChanged(@NonNull final FirebaseAuth firebaseAuth) {
+                FirebaseUser currentUser = firebaseAuth.getCurrentUser();
+                //check if user is already signed in
+                //TODO: retrieve/reset local information from the memory, e.g. score
+                if(currentUser == null){
+                    mAuth.signInAnonymously().addOnCompleteListener(MainActivity.this, new OnCompleteListener<AuthResult>() {
+                        @Override
+                        public void onComplete(@NonNull Task<AuthResult> task) {
+                            if(task.isSuccessful()){
+                                mCurrentUser = firebaseAuth.getCurrentUser();
+                                Toast.makeText(mContext,"Hello, " + mCurrentUser.getUid(), Toast.LENGTH_LONG).show();
+                            } else{
+                                Toast.makeText(mContext,"Authentication failed!", Toast.LENGTH_LONG).show();
+                                //TODO: fail the program or do something here
+                            }
+                        }
+                    });
+                } else {
+                    //user is signed in - happy days
+                    mCurrentUser = currentUser;
+                    Toast.makeText(mContext,"Hello, " + currentUser.getUid(), Toast.LENGTH_LONG).show();
+                    Log.d(TAG, "User already signed in. User id : " + mCurrentUser.getUid());
+
+                }
+            }
+        };
+        mAuth.addAuthStateListener(mAuthListener);
+
+        //Firebase realtime database initialisation
+        mDatabase = FirebaseDatabase.getInstance();
+        mDatabaseRef = mDatabase.getReference();
+        mDatabaseRef.child("openchat").addChildEventListener(new ChildEventListener() {
+            @Override
+            public void onChildAdded(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
+                //retrieve the message from the datasnapshot
+                Message newMessage = dataSnapshot.getValue(Message.class);
+                //TODO: deal with double messages, sould not be much of  a problem if we start a new chat each time
+                if(TextUtils.equals(newMessage.getSender(),mAuth.getUid())){
+                    //don't add own message
+                    return;
+                }
+                messageArrayList.add(newMessage );
+                //mAdapter.notifyDataSetChanged();
+                scrollToMostRecentMessage();
+            }
+
+            @Override
+            public void onChildChanged(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
+
+            }
+
+            @Override
+            public void onChildRemoved(@NonNull DataSnapshot dataSnapshot) {
+
+            }
+
+            @Override
+            public void onChildMoved(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
+
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+
+            }
+        });
+    }
 
 }
 
