@@ -102,8 +102,8 @@ public class MainActivity extends AppCompatActivity {
     /**
      *  Method to be called
      * created:
-     * last modified : 14:00 22/03/2019 by J.Cistiakovas - added database listener
-     * modified: 22:00 21/03/2019 by J.Cistiakovas - added anonymous sign in functionality
+     * last modified : 22/02/2019 by J.Cistiakovas - added database listener
+     * modified: 21/02/2019 by J.Cistiakovas - added anonymous sign in functionality
      */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -113,15 +113,19 @@ public class MainActivity extends AppCompatActivity {
         mContext = getApplicationContext();
 
         //initiate game parameters
+        matchMaking();  //find an opponent
+        this.initialRequest = true;
         //TODO: change the initialisation
-        isHumanGame = true;
+        //isHumanGame = true;
         messageNum = 0;
-
+        createWatsonServices(); //create text-to-speech and voice-to-text services
         if(isHumanGame){
             createFirebaseServices();
         }else{
-            createWatsonServices();
+            this.initialRequest = false; // set it randomly, it determines who starts the conversation
+            createWatsonAssistant();
         }
+
 
         inputMessage = findViewById(R.id.message);
         btnSend = findViewById(R.id.btn_send);
@@ -141,7 +145,6 @@ public class MainActivity extends AppCompatActivity {
         recyclerView.setItemAnimator(new DefaultItemAnimator());
         recyclerView.setAdapter(mAdapter);
         this.inputMessage.setText("");
-        this.initialRequest = true;
 
 
         int permission = ContextCompat.checkSelfPermission(this,
@@ -200,7 +203,7 @@ public class MainActivity extends AppCompatActivity {
     public void onStart() {
         super.onStart();
         //initiate sign in check
-        mAuthListener.onAuthStateChanged(mAuth);
+        //mAuthListener.onAuthStateChanged(mAuth);
     }
 
     // Speech-to-Text Record Audio permission
@@ -242,8 +245,8 @@ public class MainActivity extends AppCompatActivity {
 
     /**
      * Method to be called to send a message
-     * created: 22:00 23/03/2019 by J.Cistiakovas
-     * last modified: 22:00 23/03/2019 by J.Cistiakovas
+     * created: 23/02/2019 by J.Cistiakovas
+     * last modified: 23/02/2019 by J.Cistiakovas
      */
     private  void sendMessage(){
         if(isHumanGame){
@@ -287,11 +290,13 @@ public class MainActivity extends AppCompatActivity {
             Message inputMessage = new Message();
             inputMessage.setMessage(inputmessage);
             inputMessage.setId("1");
+            inputMessage.setSender(myId);
             messageArrayList.add(inputMessage);
         } else {
             Message inputMessage = new Message();
             inputMessage.setMessage(inputmessage);
             inputMessage.setId("100");
+            inputMessage.setSender(myId);
             this.initialRequest = false;
             Toast.makeText(getApplicationContext(), "Tap on the message for Voice", Toast.LENGTH_LONG).show();
 
@@ -474,8 +479,8 @@ public class MainActivity extends AppCompatActivity {
 
     /**
      * Method that scrolls the recycler view to the most recent message
-     * created: 26/03/2019 by J.Cistiakovas
-     * last modified: 26/03/2019 by J.Cistiakovas
+     * created: 26/02/2019 by J.Cistiakovas
+     * last modified: 26/02/2019 by J.Cistiakovas
      */
     private void scrollToMostRecentMessage(){
         runOnUiThread(new Runnable() {
@@ -496,13 +501,13 @@ public class MainActivity extends AppCompatActivity {
     }*/
 
 
-
+    /**
+     * Method to initialise all the objects required for Watson Services to work,
+     * but assistant s not initialised
+     * created: -
+     * last modified: 07/03/2019 by J.Cistiakovas
+     */
     private void createWatsonServices() {
-        watsonAssistant = new Assistant("2018-11-08", new IamOptions.Builder()
-                .apiKey(mContext.getString(R.string.assistant_apikey))
-                .build());
-        watsonAssistant.setEndPoint(mContext.getString(R.string.assistant_url));
-
         textToSpeech = new TextToSpeech();
         textToSpeech.setIamCredentials(new IamOptions.Builder()
                 .apiKey(mContext.getString(R.string.TTS_apikey))
@@ -514,11 +519,26 @@ public class MainActivity extends AppCompatActivity {
                 .apiKey(mContext.getString(R.string.STT_apikey))
                 .build());
         speechService.setEndPoint(mContext.getString(R.string.STT_url));
+    }
 
+    /**
+     * Method to initialise Watson assistant
+     * created: -
+     * last modified: 07/03/2019 by J.Cistiakovas
+     */
+    private void createWatsonAssistant(){
+        watsonAssistant = new Assistant("2018-11-08", new IamOptions.Builder()
+                .apiKey(mContext.getString(R.string.assistant_apikey))
+                .build());
+        watsonAssistant.setEndPoint(mContext.getString(R.string.assistant_url));
         myId = "100";
     }
 
-
+    /**
+     * Method to initialise Firebase services, such as Auth and Realtime Database
+     * created: 04/03/2019 by J.Cistiakovas
+     * last modified: 07/03/2019 by J.Cistiakovas
+     */
     private void createFirebaseServices(){
         //Firebase anonymous Auth
         mAuth = FirebaseAuth.getInstance();
@@ -561,6 +581,10 @@ public class MainActivity extends AppCompatActivity {
         mDatabaseRef.child("openchat").addChildEventListener(new ChildEventListener() {
             @Override
             public void onChildAdded(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
+                if(initialRequest){
+                    initialRequest = false;
+                    return;
+                }
                 //retrieve the message from the datasnapshot
                 Message newMessage = dataSnapshot.getValue(Message.class);
                 //TODO: deal with double messages, sould not be much of  a problem if we start a new chat each time
@@ -595,6 +619,28 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
+    /**
+     * Method that deals with matchmaking and assigning opponent to the user
+     * created:
+     * last modified:
+     */
+    private void matchMaking(){
+
+        try {
+            Thread.sleep(5000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
+        if(Math.random() > 0.1) {
+            isHumanGame = false;
+            Log.d(TAG, "This is a game against bot!");
+        }else{
+            isHumanGame = true;
+            Log.d(TAG, "This is a game against human!");
+        }
+
+    }
 }
 
 

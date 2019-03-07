@@ -8,6 +8,17 @@
 # Java class files
 *.class
 
+# Java files
+app/src/main/java/com/example/vmac/WatBot/EndOfGameReport.java
+app/src/main/java/com/example/vmac/WatBot/GameInstance.java
+app/src/main/java/com/example/vmac/WatBot/GameWithBot.java
+app/src/main/java/com/example/vmac/WatBot/GameWithHuman.java
+app/src/main/java/com/example/vmac/WatBot/Player.java
+app/src/main/java/com/example/vmac/WatBot/TuringChat.java
+app/src/main/java/com/example/vmac/WatBot/TuringGame.java
+app/src/main/java/com/example/vmac/WatBot/TuringMessage.java
+
+
 # Generated files
 bin/
 gen/

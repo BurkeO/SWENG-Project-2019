@@ -62,7 +62,7 @@ public class ChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
       return SELF;
     }
 
-    return position;
+    return -1 * SELF;
   }
 
   @Override
