@@ -22,6 +22,7 @@ import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.ImageButton;
+import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import com.google.android.gms.tasks.OnCompleteListener;
@@ -97,36 +98,31 @@ public class MainActivity extends AppCompatActivity {
     private boolean isHumanGame;
     private int messageNum;
     private String myId;
+    private int gameStatus;
+    private static final int GAME_NOT_ACTIVE = 1;
+    private static final int GAME_ACTIVE = 5;
 
+
+    //UI elements
+    private ProgressBar progressBar;
 
     /**
-     *  Method to be called
+     *  Method to be called when activity is created
      * created:
-     * last modified : 22/02/2019 by J.Cistiakovas - added database listener
+     * last modified : 07/03/2019 by J.Cistiakovas - added a progress bar that initially appears on
+     *      the screen. Added a thread that performs matchmaking and at the end hides the progress bar.
+     *      Added checks to ensure that send/record buttons can only be used when game has started.
+     * modified : 07/03/2019 by J.Cistiakovas - added a function call to matchmaking
+     * modified : 22/02/2019 by J.Cistiakovas - added database listener
      * modified: 21/02/2019 by J.Cistiakovas - added anonymous sign in functionality
      */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        //inflate the layout
         setContentView(R.layout.activity_main);
 
         mContext = getApplicationContext();
-
-        //initiate game parameters
-        matchMaking();  //find an opponent
-        this.initialRequest = true;
-        //TODO: change the initialisation
-        //isHumanGame = true;
-        messageNum = 0;
-        createWatsonServices(); //create text-to-speech and voice-to-text services
-        if(isHumanGame){
-            createFirebaseServices();
-        }else{
-            this.initialRequest = false; // set it randomly, it determines who starts the conversation
-            createWatsonAssistant();
-        }
-
-
         inputMessage = findViewById(R.id.message);
         btnSend = findViewById(R.id.btn_send);
         btnRecord = findViewById(R.id.btn_record);
@@ -136,17 +132,50 @@ public class MainActivity extends AppCompatActivity {
         recyclerView = findViewById(R.id.recycler_view);
 
         messageArrayList = new ArrayList<>();
-        mAdapter = new ChatAdapter(messageArrayList,myId);
+        //mAdapter = new ChatAdapter(messageArrayList,myId);
         microphoneHelper = new MicrophoneHelper(this);
 
         LinearLayoutManager layoutManager = new LinearLayoutManager(this);
         layoutManager.setStackFromEnd(true);
         recyclerView.setLayoutManager(layoutManager);
         recyclerView.setItemAnimator(new DefaultItemAnimator());
-        recyclerView.setAdapter(mAdapter);
+        //recyclerView.setAdapter(mAdapter);
         this.inputMessage.setText("");
+        progressBar = findViewById(R.id.progressBar);
+
+        recyclerView.setVisibility(View.GONE);
+        progressBar.setVisibility(View.VISIBLE);
 
 
+        gameStatus = GAME_NOT_ACTIVE;
+        //initiate game parameters
+        //TODO: change the initialisation
+        messageNum = 0;
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                matchMaking();  //find an opponent
+                initialRequest = true;
+                createWatsonServices(); //create text-to-speech and voice-to-text services
+                if(isHumanGame){
+                    createFirebaseServices();
+                }else{
+                    initialRequest = false; // set it randomly, it determines who starts the conversation
+                    createWatsonAssistant();
+                }
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        progressBar.setVisibility(View.GONE);
+                        recyclerView.setVisibility(View.VISIBLE);
+                        mAdapter = new ChatAdapter(messageArrayList,myId);
+                        recyclerView.setAdapter(mAdapter);
+                        mAdapter.notifyDataSetChanged();
+                        gameStatus = GAME_ACTIVE;
+                    }
+                });
+            }
+        }).start();
         int permission = ContextCompat.checkSelfPermission(this,
                 Manifest.permission.RECORD_AUDIO);
 
@@ -176,7 +205,8 @@ public class MainActivity extends AppCompatActivity {
         btnSend.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (checkInternetConnection()) {
+                //only send the message if game is active
+                if (checkInternetConnection() && gameStatus==GAME_ACTIVE) {
                     sendMessage();
                 }
             }
@@ -185,7 +215,9 @@ public class MainActivity extends AppCompatActivity {
         btnRecord.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                recordMessage();
+                if (gameStatus==GAME_ACTIVE) {
+                    recordMessage();
+                }
             }
         });
         //TODO: find out why it is necessary to send an empty initial message?
@@ -267,7 +299,7 @@ public class MainActivity extends AppCompatActivity {
         Message message = new Message();
         message.setMessage(this.inputMessage.getText().toString().trim());
         message.setId(id);
-        message.setSender(mAuth.getUid());
+        message.setSender(myId);
 
         //return if message is empty
         if(message.getMessage().equals("")){
@@ -579,6 +611,7 @@ public class MainActivity extends AppCompatActivity {
         mDatabase = FirebaseDatabase.getInstance();
         mDatabaseRef = mDatabase.getReference();
         mDatabaseRef.child("openchat").addChildEventListener(new ChildEventListener() {
+            // TODO: not load previous conversation, possibly use timestamps
             @Override
             public void onChildAdded(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
                 if(initialRequest){
