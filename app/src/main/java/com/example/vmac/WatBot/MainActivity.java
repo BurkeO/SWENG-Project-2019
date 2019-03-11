@@ -107,11 +107,11 @@ public class MainActivity extends AppCompatActivity {
     private ProgressBar progressBar;
 
     /**
-     *  Method to be called when activity is created
+     * Method to be called when activity is created
      * created:
      * last modified : 07/03/2019 by J.Cistiakovas - added a progress bar that initially appears on
-     *      the screen. Added a thread that performs matchmaking and at the end hides the progress bar.
-     *      Added checks to ensure that send/record buttons can only be used when game has started.
+     * the screen. Added a thread that performs matchmaking and at the end hides the progress bar.
+     * Added checks to ensure that send/record buttons can only be used when game has started.
      * modified : 07/03/2019 by J.Cistiakovas - added a function call to matchmaking
      * modified : 22/02/2019 by J.Cistiakovas - added database listener
      * modified: 21/02/2019 by J.Cistiakovas - added anonymous sign in functionality
@@ -157,9 +157,9 @@ public class MainActivity extends AppCompatActivity {
                 matchMaking();  //find an opponent
                 initialRequest = true;
                 createWatsonServices(); //create text-to-speech and voice-to-text services
-                if(isHumanGame){
+                if (isHumanGame) {
                     createFirebaseServices();
-                }else{
+                } else {
                     initialRequest = false; // set it randomly, it determines who starts the conversation
                     createWatsonAssistant();
                 }
@@ -168,7 +168,7 @@ public class MainActivity extends AppCompatActivity {
                     public void run() {
                         progressBar.setVisibility(View.GONE);
                         recyclerView.setVisibility(View.VISIBLE);
-                        mAdapter = new ChatAdapter(messageArrayList,myId);
+                        mAdapter = new ChatAdapter(messageArrayList, myId);
                         recyclerView.setAdapter(mAdapter);
                         mAdapter.notifyDataSetChanged();
                         gameStatus = GAME_ACTIVE;
@@ -206,7 +206,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 //only send the message if game is active
-                if (checkInternetConnection() && gameStatus==GAME_ACTIVE) {
+                if (checkInternetConnection() && gameStatus == GAME_ACTIVE) {
                     sendMessage();
                 }
             }
@@ -215,7 +215,7 @@ public class MainActivity extends AppCompatActivity {
         btnRecord.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (gameStatus==GAME_ACTIVE) {
+                if (gameStatus == GAME_ACTIVE) {
                     recordMessage();
                 }
             }
@@ -261,7 +261,7 @@ public class MainActivity extends AppCompatActivity {
 
             case MicrophoneHelper.REQUEST_PERMISSION: {
                 if (grantResults.length > 0 && grantResults[0] != PackageManager.PERMISSION_GRANTED) {
-                    Toast.makeText(this, "Permission to record audio denied", Toast.LENGTH_SHORT).show();
+                    showToast("Permission to record audio denied", Toast.LENGTH_SHORT);
                 }
             }
         }
@@ -280,10 +280,10 @@ public class MainActivity extends AppCompatActivity {
      * created: 23/02/2019 by J.Cistiakovas
      * last modified: 23/02/2019 by J.Cistiakovas
      */
-    private  void sendMessage(){
-        if(isHumanGame){
+    private void sendMessage() {
+        if (isHumanGame) {
             sendMessageHuman();
-        }else{
+        } else {
             sendMessageBot();
         }
     }
@@ -293,7 +293,7 @@ public class MainActivity extends AppCompatActivity {
      * created: 22:00 23/03/2019 by J.Cistiakovas
      * last modified: 22:00 23/03/2019 by J.Cistiakovas
      */
-    private void sendMessageHuman(){
+    private void sendMessageHuman() {
         //create a new TuringMessage object using values from the editText box
         String id = mAuth.getUid() + (new Integer(messageNum++).toString());
         Message message = new Message();
@@ -302,7 +302,7 @@ public class MainActivity extends AppCompatActivity {
         message.setSender(myId);
 
         //return if message is empty
-        if(message.getMessage().equals("")){
+        if (message.getMessage().equals("")) {
             return;
         }
         //publish the message in an openchat
@@ -312,6 +312,7 @@ public class MainActivity extends AppCompatActivity {
         this.inputMessage.setText("");
         // make adapter to update its view and add a new message to the screen
         //mAdapter.notifyDataSetChanged();
+        new SayTask().execute(message.getMessage());
         scrollToMostRecentMessage();
     }
 
@@ -330,7 +331,7 @@ public class MainActivity extends AppCompatActivity {
             inputMessage.setId("100");
             inputMessage.setSender(myId);
             this.initialRequest = false;
-            Toast.makeText(getApplicationContext(), "Tap on the message for Voice", Toast.LENGTH_LONG).show();
+            showToast("Tap on the message for Voice", Toast.LENGTH_LONG);
 
         }
 
@@ -409,13 +410,13 @@ public class MainActivity extends AppCompatActivity {
                 }
             }).start();
             listening = true;
-            Toast.makeText(MainActivity.this, "Listening....Click to Stop", Toast.LENGTH_LONG).show();
+            showToast("Listening....Click to Stop", Toast.LENGTH_LONG);
 
         } else {
             try {
                 microphoneHelper.closeInputStream();
                 listening = false;
-                Toast.makeText(MainActivity.this, "Stopped Listening....Click to Start", Toast.LENGTH_LONG).show();
+                showToast("Stopped Listening....Click to Start", Toast.LENGTH_LONG);
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -441,7 +442,7 @@ public class MainActivity extends AppCompatActivity {
         if (isConnected) {
             return true;
         } else {
-            Toast.makeText(this, " No Internet Connection available ", Toast.LENGTH_LONG).show();
+            showToast(" No Internet Connection available ", Toast.LENGTH_LONG);
             return false;
         }
 
@@ -514,13 +515,13 @@ public class MainActivity extends AppCompatActivity {
      * created: 26/02/2019 by J.Cistiakovas
      * last modified: 26/02/2019 by J.Cistiakovas
      */
-    private void scrollToMostRecentMessage(){
+    private void scrollToMostRecentMessage() {
         runOnUiThread(new Runnable() {
             public void run() {
                 mAdapter.notifyDataSetChanged();
                 if (mAdapter.getItemCount() > 1) {
                     recyclerView.getLayoutManager().smoothScrollToPosition(recyclerView, null, mAdapter.getItemCount() - 1);
-                    Log.d(TAG,"Scrolled to the most recent message!");
+                    Log.d(TAG, "Scrolled to the most recent message!");
                 }
 
             }
@@ -558,7 +559,7 @@ public class MainActivity extends AppCompatActivity {
      * created: -
      * last modified: 07/03/2019 by J.Cistiakovas
      */
-    private void createWatsonAssistant(){
+    private void createWatsonAssistant() {
         watsonAssistant = new Assistant("2018-11-08", new IamOptions.Builder()
                 .apiKey(mContext.getString(R.string.assistant_apikey))
                 .build());
@@ -571,7 +572,7 @@ public class MainActivity extends AppCompatActivity {
      * created: 04/03/2019 by J.Cistiakovas
      * last modified: 07/03/2019 by J.Cistiakovas
      */
-    private void createFirebaseServices(){
+    private void createFirebaseServices() {
         //Firebase anonymous Auth
         mAuth = FirebaseAuth.getInstance();
         mCurrentUser = mAuth.getCurrentUser();
@@ -582,15 +583,15 @@ public class MainActivity extends AppCompatActivity {
                 FirebaseUser currentUser = firebaseAuth.getCurrentUser();
                 //check if user is already signed in
                 //TODO: retrieve/reset local information from the memory, e.g. score
-                if(currentUser == null){
+                if (currentUser == null) {
                     mAuth.signInAnonymously().addOnCompleteListener(MainActivity.this, new OnCompleteListener<AuthResult>() {
                         @Override
                         public void onComplete(@NonNull Task<AuthResult> task) {
-                            if(task.isSuccessful()){
+                            if (task.isSuccessful()) {
                                 mCurrentUser = firebaseAuth.getCurrentUser();
-                                Toast.makeText(mContext,"Hello, " + mCurrentUser.getUid(), Toast.LENGTH_LONG).show();
-                            } else{
-                                Toast.makeText(mContext,"Authentication failed!", Toast.LENGTH_LONG).show();
+                                showToast("Hello, " + mCurrentUser.getUid(), Toast.LENGTH_LONG);
+                            } else {
+                                showToast("Authentication failed!", Toast.LENGTH_LONG);
                                 //TODO: fail the program or do something here
                             }
                         }
@@ -598,7 +599,7 @@ public class MainActivity extends AppCompatActivity {
                 } else {
                     //user is signed in - happy days
                     mCurrentUser = currentUser;
-                    Toast.makeText(mContext,"Hello, " + currentUser.getUid(), Toast.LENGTH_LONG).show();
+                    showToast("Hello, " + currentUser.getUid(), Toast.LENGTH_LONG);
                     Log.d(TAG, "User already signed in. User id : " + mCurrentUser.getUid());
 
                 }
@@ -614,18 +615,18 @@ public class MainActivity extends AppCompatActivity {
             // TODO: not load previous conversation, possibly use timestamps
             @Override
             public void onChildAdded(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
-                if(initialRequest){
+                if (initialRequest) {
                     initialRequest = false;
                     return;
                 }
                 //retrieve the message from the datasnapshot
                 Message newMessage = dataSnapshot.getValue(Message.class);
                 //TODO: deal with double messages, sould not be much of  a problem if we start a new chat each time
-                if(TextUtils.equals(newMessage.getSender(),mAuth.getUid())){
+                if (TextUtils.equals(newMessage.getSender(), mAuth.getUid())) {
                     //don't add own message
                     return;
                 }
-                messageArrayList.add(newMessage );
+                messageArrayList.add(newMessage);
                 //mAdapter.notifyDataSetChanged();
                 scrollToMostRecentMessage();
             }
@@ -657,7 +658,7 @@ public class MainActivity extends AppCompatActivity {
      * created:
      * last modified:
      */
-    private void matchMaking(){
+    private void matchMaking() {
 
         try {
             Thread.sleep(5000);
@@ -665,14 +666,29 @@ public class MainActivity extends AppCompatActivity {
             e.printStackTrace();
         }
 
-        if(Math.random() > 0.1) {
+        if (Math.random() > 0.5) {
             isHumanGame = false;
+            showToast("This is a game against bot!", Toast.LENGTH_LONG);
             Log.d(TAG, "This is a game against bot!");
-        }else{
+        } else {
             isHumanGame = true;
+            showToast("This is a game against human!", Toast.LENGTH_LONG);
             Log.d(TAG, "This is a game against human!");
         }
 
+    }
+
+    /**
+     * Method that makes a Toast via a UI thred
+     * created: 11/03/2019 by J.Cistiakovas
+     * last modified: 11/03/2019 by J.Cistiakovas
+     */
+    private void showToast(final String string, final int duration) {
+        runOnUiThread(new Runnable() {
+            public void run() {
+                Toast.makeText(mContext, string, duration).show();
+            }
+        });
     }
 }
 
