@@ -9,6 +9,7 @@ import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.CountDownTimer;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
@@ -20,9 +21,11 @@ import android.support.v7.widget.RecyclerView;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ProgressBar;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.tasks.OnCompleteListener;
@@ -101,17 +104,25 @@ public class MainActivity extends AppCompatActivity {
     private int gameStatus;
     private static final int GAME_NOT_ACTIVE = 1;
     private static final int GAME_ACTIVE = 5;
-
+    private static final int GAME_STOPPED = 5;
 
     //UI elements
-    private ProgressBar progressBar;
+    private ProgressBar mProgressBar;
+    private Button mTimerStopButton;
+    private TextView mTimerTime;
+    //Timer
+    private CountDownTimer mCountDownTimer;
+    private final long gameLength = 5 * 60000; // fix game length at 5 minutes
+    private long mTimeLeft;
+    private boolean mTimerRunning;
 
     /**
      * Method to be called when activity is created
      * created:
-     * last modified : 07/03/2019 by J.Cistiakovas - added a progress bar that initially appears on
-     * the screen. Added a thread that performs matchmaking and at the end hides the progress bar.
-     * Added checks to ensure that send/record buttons can only be used when game has started.
+     * last modified : 14/03/2019 by J.Cistiakovas - added functionality for the timer.
+     * modified : 07/03/2019 by J.Cistiakovas - added a progress bar that initially appears on
+     *      the screen. Added a thread that performs matchmaking and at the end hides the progress bar.
+     *      Added checks to ensure that send/record buttons can only be used when game has started.
      * modified : 07/03/2019 by J.Cistiakovas - added a function call to matchmaking
      * modified : 22/02/2019 by J.Cistiakovas - added database listener
      * modified: 21/02/2019 by J.Cistiakovas - added anonymous sign in functionality
@@ -130,6 +141,8 @@ public class MainActivity extends AppCompatActivity {
         Typeface typeface = Typeface.createFromAsset(getAssets(), customFont);
         inputMessage.setTypeface(typeface);
         recyclerView = findViewById(R.id.recycler_view);
+        mTimerStopButton = findViewById(R.id.timerStopButton);
+        mTimerTime = findViewById(R.id.timerTime);
 
         messageArrayList = new ArrayList<>();
         //mAdapter = new ChatAdapter(messageArrayList,myId);
@@ -141,15 +154,14 @@ public class MainActivity extends AppCompatActivity {
         recyclerView.setItemAnimator(new DefaultItemAnimator());
         //recyclerView.setAdapter(mAdapter);
         this.inputMessage.setText("");
-        progressBar = findViewById(R.id.progressBar);
+        mProgressBar = findViewById(R.id.progressBar);
 
         recyclerView.setVisibility(View.GONE);
-        progressBar.setVisibility(View.VISIBLE);
-
+        mProgressBar.setVisibility(View.VISIBLE);
 
         gameStatus = GAME_NOT_ACTIVE;
         //initiate game parameters
-        //TODO: change the initialisation
+        mTimerRunning = false;
         messageNum = 0;
         new Thread(new Runnable() {
             @Override
@@ -166,14 +178,19 @@ public class MainActivity extends AppCompatActivity {
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        progressBar.setVisibility(View.GONE);
+                        mProgressBar.setVisibility(View.GONE);
                         recyclerView.setVisibility(View.VISIBLE);
                         mAdapter = new ChatAdapter(messageArrayList, myId);
                         recyclerView.setAdapter(mAdapter);
                         mAdapter.notifyDataSetChanged();
                         gameStatus = GAME_ACTIVE;
+
+
+
                     }
                 });
+                //start the timer
+                startTimer();
             }
         }).start();
         int permission = ContextCompat.checkSelfPermission(this,
@@ -222,6 +239,14 @@ public class MainActivity extends AppCompatActivity {
         });
         //TODO: find out why it is necessary to send an empty initial message?
         //sendMessage();
+
+        //timer listener
+        mTimerStopButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                timerStartStop();
+            }
+        });
     }
 
     ;
@@ -337,7 +362,7 @@ public class MainActivity extends AppCompatActivity {
 
         this.inputMessage.setText("");
         mAdapter.notifyDataSetChanged();
-
+        scrollToMostRecentMessage();
         Thread thread = new Thread(new Runnable() {
             public void run() {
                 try {
@@ -661,7 +686,7 @@ public class MainActivity extends AppCompatActivity {
     private void matchMaking() {
 
         try {
-            Thread.sleep(5000);
+            Thread.sleep(50);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
@@ -689,6 +714,83 @@ public class MainActivity extends AppCompatActivity {
                 Toast.makeText(mContext, string, duration).show();
             }
         });
+    }
+
+    /**
+     * Logic for the timer
+     * created: 14/03/2019 by J.Cistiakovas
+     * last modified: 14/03/2019 by J.Cistiakovas
+     */
+    private void timerStartStop(){
+        if(mTimerRunning && gameStatus==GAME_ACTIVE){
+            //stop timer
+            stopTimer();
+        }else{
+            //not running, start the timer
+            //set up the timer
+            startTimer();
+        }
+    }
+
+    /**
+     * Method creates and starts a new timer
+     * created: 14/03/2019 by J.Cistiakovas
+     * last modified: 14/03/2019 by J.Cistiakovas
+     */
+    private void startTimer(){
+        //set up the timer
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                mCountDownTimer = new CountDownTimer(gameLength,1000) {
+                    @Override
+                    public void onTick(long l) {
+                        mTimeLeft = l;
+                        updateTime();
+                    }
+
+                    @Override
+                    public void onFinish() {
+                        stopTimer();
+
+                    }
+                };
+                mCountDownTimer.start();
+            }
+        });
+        mTimerRunning = true;
+        Log.d(TAG,"New timer started!");
+    }
+
+    /**
+     * Updates the textField showing the time left
+     * created: 14/03/2019 by J.Cistiakovas
+     * last modified: 14/03/2019 by J.Cistiakovas
+     */
+    private void updateTime(){
+        //change the string
+        int minutes = (int) mTimeLeft / 60000;
+        int seconds = (int) (mTimeLeft % 60000) / 1000;
+        String timeLeftText;
+        timeLeftText = String.format("%02d:%02d",minutes, seconds);
+        mTimerTime.setText(timeLeftText);
+    }
+
+    /**
+     * Stops the timer and updates the game state
+     * created: 14/03/2019 by J.Cistiakovas
+     * last modified: 14/03/2019 by J.Cistiakovas
+     */
+    //TODO: add actions to be done as the game is stopped/ended
+    private void stopTimer() {
+        //stop the game and move to other activity?
+
+        //change the states
+        mCountDownTimer.cancel();
+        gameStatus = GAME_STOPPED;
+        mTimerRunning = false;
+        showToast("Timer stop pressed", Toast.LENGTH_SHORT);
+        Log.d(TAG,"Timer stop pressed.");
     }
 }
 
