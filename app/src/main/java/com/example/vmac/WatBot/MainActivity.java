@@ -30,6 +30,7 @@ import android.widget.Toast;
 
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
+import com.google.firebase.FirebaseApp;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
@@ -595,10 +596,11 @@ public class MainActivity extends AppCompatActivity {
     /**
      * Method to initialise Firebase services, such as Auth and Realtime Database
      * created: 04/03/2019 by J.Cistiakovas
-     * last modified: 07/03/2019 by J.Cistiakovas
+     * last modified: 18/03/2019 by J.Cistiakovas - added initialisation of FirebaseApp, as otherwise it was crashing
      */
     private void createFirebaseServices() {
         //Firebase anonymous Auth
+        FirebaseApp.initializeApp(this);
         mAuth = FirebaseAuth.getInstance();
         mCurrentUser = mAuth.getCurrentUser();
         //listener that listens for change in the Auth state

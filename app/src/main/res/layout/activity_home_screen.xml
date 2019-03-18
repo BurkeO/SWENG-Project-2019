@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".MainActivity">
+
+    <!--title of the game displayed on homescreen-->
+    <TextView
+        android:id="@+id/title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerInParent="true"
+        android:layout_marginStart="100dp"
+        android:layout_marginTop="10dp"
+        android:text="@string/the_turing_game"
+        android:textAppearance="@style/TextAppearance.AppCompat.Body1"
+        android:textColor="@color/colorPrimary"
+        android:textSize="30sp"
+        android:textStyle="bold"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.12" />
+
+    <!--button pressed to start a game and take you to the chat screen.-->
+    <Button
+        android:id="@+id/new_game_button"
+        style="@style/Widget.AppCompat.Button"
+        android:layout_width="205dp"
+        android:layout_height="66dp"
+        android:layout_below="@+id/title"
+        android:layout_marginStart="112dp"
+        android:layout_marginBottom="56dp"
+        android:background="@color/colorPrimary"
+        android:text="@string/start_game"
+        android:textColor="@color/bg_bubble_watbot"
+        app:layout_constraintBottom_toTopOf="@+id/contact_button"
+        app:layout_constraintStart_toStartOf="parent" />
+
+    <!--button pressed to go to the settings screen.-->
+    <Button
+        android:id="@+id/contact_button"
+        android:layout_width="110dp"
+        android:layout_height="wrap_content"
+        android:layout_centerHorizontal="true"
+        android:layout_marginStart="160dp"
+        android:layout_marginBottom="48dp"
+        android:background="@color/colorPrimary"
+        android:text="@string/contact"
+        android:textColor="@color/bg_bubble_watbot"
+        app:layout_constraintBottom_toTopOf="@+id/settings_button"
+        app:layout_constraintStart_toStartOf="parent" />
+
+    <!--button pressed to get in contact with the app makers an take you to the contact screen.-->
+    <Button
+        android:id="@+id/settings_button"
+        android:layout_width="110dp"
+        android:layout_height="45dp"
+        android:layout_centerHorizontal="true"
+        android:layout_marginStart="160dp"
+        android:layout_marginBottom="100dp"
+        android:background="@color/colorPrimary"
+        android:text="@string/settings"
+        android:textColor="@color/bg_bubble_watbot"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
+
+
+</android.support.constraint.ConstraintLayout>
