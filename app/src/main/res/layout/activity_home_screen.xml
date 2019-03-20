@@ -32,7 +32,7 @@
         android:layout_height="66dp"
         android:layout_below="@+id/title"
         android:layout_marginStart="112dp"
-        android:layout_marginBottom="56dp"
+        android:layout_marginBottom="50dp"
         android:background="@color/colorPrimary"
         android:text="@string/start_game"
         android:textColor="@color/bg_bubble_watbot"
@@ -46,7 +46,7 @@
         android:layout_height="wrap_content"
         android:layout_centerHorizontal="true"
         android:layout_marginStart="160dp"
-        android:layout_marginBottom="48dp"
+        android:layout_marginBottom="50dp"
         android:background="@color/colorPrimary"
         android:text="@string/contact"
         android:textColor="@color/bg_bubble_watbot"
@@ -60,12 +60,22 @@
         android:layout_height="45dp"
         android:layout_centerHorizontal="true"
         android:layout_marginStart="160dp"
-        android:layout_marginBottom="100dp"
+        android:layout_marginBottom="50dp"
         android:background="@color/colorPrimary"
         android:text="@string/settings"
         android:textColor="@color/bg_bubble_watbot"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent" />
+
+    <ImageView
+        android:id="@+id/imageView"
+        android:layout_width="190dp"
+        android:layout_height="160dp"
+        android:layout_marginStart="120dp"
+        android:layout_marginTop="20dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/title"
+        app:srcCompat="@drawable/robot" />
 
 
 </android.support.constraint.ConstraintLayout>

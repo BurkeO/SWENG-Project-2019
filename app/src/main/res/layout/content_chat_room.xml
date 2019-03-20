@@ -25,11 +25,23 @@
 
 
         <Button
-            android:id="@+id/timerStopButton"
+            android:id="@+id/human"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="@string/timerStopButtonText" />
+            android:background="@color/colorAccent"
+            android:text="@string/human"
+            android:textColor="@color/bg_bubble_watbot" />
+
+        <Button
+            android:id="@+id/bot"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="2dp"
+            android:layout_weight="1"
+            android:background="@color/colorAccent"
+            android:text="@string/bot"
+            android:textColor="@color/bg_bubble_watbot" />
     </LinearLayout>
 
     <FrameLayout
@@ -105,8 +117,5 @@
             android:paddingLeft="10dp"
             android:scaleType="fitCenter"
             android:src="@mipmap/ic_send" />
-
-
     </LinearLayout>
-
 </RelativeLayout>

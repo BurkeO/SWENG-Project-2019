@@ -17,6 +17,8 @@ public class home_screen extends AppCompatActivity implements View.OnClickListen
 
     //Use to test if something clicked, text appears:
     // Toast.makeText(this, "this was clicked", Toast.LENGTH_SHORT).show();
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);

@@ -28,6 +28,9 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.example.vmac.chatbot.home_screen;
+import com.example.vmac.chatbot.results;
+import com.example.vmac.chatbot.results_2;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.FirebaseApp;
@@ -128,11 +131,16 @@ public class MainActivity extends AppCompatActivity {
      * modified : 22/02/2019 by J.Cistiakovas - added database listener
      * modified: 21/02/2019 by J.Cistiakovas - added anonymous sign in functionality
      */
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         //inflate the layout
         setContentView(R.layout.activity_main);
+
+        //buttons used to guess if human or bot
+        Button guessButton1 = findViewById(R.id.human);
+        Button guessButton2 = findViewById(R.id.bot);
 
         mContext = getApplicationContext();
         inputMessage = findViewById(R.id.message);
@@ -142,7 +150,6 @@ public class MainActivity extends AppCompatActivity {
         Typeface typeface = Typeface.createFromAsset(getAssets(), customFont);
         inputMessage.setTypeface(typeface);
         recyclerView = findViewById(R.id.recycler_view);
-        mTimerStopButton = findViewById(R.id.timerStopButton);
         mTimerTime = findViewById(R.id.timerTime);
 
         messageArrayList = new ArrayList<>();
@@ -241,15 +248,22 @@ public class MainActivity extends AppCompatActivity {
         //TODO: find out why it is necessary to send an empty initial message?
         //sendMessage();
 
-        //timer listener
-        mTimerStopButton.setOnClickListener(new View.OnClickListener() {
+        //timer listener - DETECTING WHEN USER GUESSES HUMAN
+        guessButton1.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                timerStartStop();
+            }
+        });
+
+        //timer listener - DETECTING WHEN USER GUESSES BOT
+        guessButton2.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 timerStartStop();
             }
         });
     }
-
     ;
 
     /**
@@ -706,7 +720,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     /**
-     * Method that makes a Toast via a UI thred
+     * Method that makes a Toast via a UI thread
      * created: 11/03/2019 by J.Cistiakovas
      * last modified: 11/03/2019 by J.Cistiakovas
      */
@@ -727,7 +741,44 @@ public class MainActivity extends AppCompatActivity {
         if(mTimerRunning && gameStatus==GAME_ACTIVE){
             //stop timer
             stopTimer();
-        }else{
+
+            //Takes to results screen saying if it was a bot or human
+            if(isHumanGame)  //if human
+            {
+                Intent human_results_intent = new Intent(this, results_2.class);
+
+                //pass the time it took the user to complete the game into results
+                int minutes = (int) (mTimeLeft / 60000);
+                int seconds = (int) (mTimeLeft % 60000) / 1000;
+                minutes = 4 - minutes;              //get time taken by subtracting
+                                                    // time left from time elapsed
+                                                    //NOTE: not sure why it is 4- mins not 5 but works
+                seconds = 60 - seconds;
+                String timeLeftText;
+                timeLeftText = String.format("%02d mins : %02d seconds",minutes, seconds);
+                human_results_intent.putExtra("timeTaken",timeLeftText);
+
+                startActivity(human_results_intent);
+            }
+            else //if bot
+            {
+                Intent bot_results_intent = new Intent(this, results.class);
+
+                //pass the time it took the user to complete the game into results
+                int minutes = (int) (mTimeLeft / 60000);
+                int seconds = (int) (mTimeLeft % 60000) / 1000;
+                minutes = 4 - minutes;              //get time taken by subtracting
+                                                    // time left from time elapsed
+                                                    //NOTE: not sure why it is 4- mins not 5 but works
+                seconds = 60 - seconds;
+                String timeLeftText;
+                timeLeftText = String.format("%02d mins : %02d seconds",minutes, seconds);
+                bot_results_intent.putExtra("timeTaken",timeLeftText);
+
+                startActivity(bot_results_intent);
+            }
+        }
+        else {
             //not running, start the timer
             //set up the timer
             startTimer();
@@ -794,6 +845,7 @@ public class MainActivity extends AppCompatActivity {
         showToast("Timer stop pressed", Toast.LENGTH_SHORT);
         Log.d(TAG,"Timer stop pressed.");
     }
+
 }
 
 
