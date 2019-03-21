@@ -28,6 +28,10 @@ public class results_2 extends AppCompatActivity {
         timeToDisplay.setText(timeTaken);
     }
 
-
-
+    //avoid user going back into game when it is finished. Back to home screen.
+    @Override
+    public void onBackPressed() {
+        Intent backToHome = new Intent(this, home_screen.class);
+        startActivity(backToHome);
+    }
 }
