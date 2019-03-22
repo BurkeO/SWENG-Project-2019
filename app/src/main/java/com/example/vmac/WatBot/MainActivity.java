@@ -39,6 +39,7 @@ import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 import com.ibm.watson.developer_cloud.android.library.audio.MicrophoneHelper;
 import com.ibm.watson.developer_cloud.android.library.audio.MicrophoneInputStream;
 import com.ibm.watson.developer_cloud.android.library.audio.StreamPlayer;
@@ -58,8 +59,17 @@ import com.ibm.watson.developer_cloud.speech_to_text.v1.websocket.BaseRecognizeC
 import com.ibm.watson.developer_cloud.text_to_speech.v1.TextToSpeech;
 import com.ibm.watson.developer_cloud.text_to_speech.v1.model.SynthesizeOptions;
 
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.io.InputStream;
+import java.io.ObjectStreamException;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
 
 public class MainActivity extends AppCompatActivity {
@@ -100,8 +110,11 @@ public class MainActivity extends AppCompatActivity {
     //reference to a game obect
     //private TuringGame currentGame;
     private boolean isHumanGame;
+    private boolean gameJoined;
+    private String gameState;
     private int messageNum;
     private String myId;
+    private String chatRoomId;
     private int gameStatus;
     private static final int GAME_NOT_ACTIVE = 1;
     private static final int GAME_ACTIVE = 5;
@@ -146,6 +159,9 @@ public class MainActivity extends AppCompatActivity {
         mTimerTime = findViewById(R.id.timerTime);
 
         messageArrayList = new ArrayList<>();
+        gameJoined = false;
+        gameState = null;
+
         //mAdapter = new ChatAdapter(messageArrayList,myId);
         microphoneHelper = new MicrophoneHelper(this);
 
@@ -167,15 +183,8 @@ public class MainActivity extends AppCompatActivity {
         new Thread(new Runnable() {
             @Override
             public void run() {
-                matchMaking();  //find an opponent
-                initialRequest = true;
-                createWatsonServices(); //create text-to-speech and voice-to-text services
-                if (isHumanGame) {
-                    createFirebaseServices();
-                } else {
-                    initialRequest = false; // set it randomly, it determines who starts the conversation
-                    createWatsonAssistant();
-                }
+                //matchMaking();  //find an opponent
+                matchmaking();
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
@@ -331,15 +340,15 @@ public class MainActivity extends AppCompatActivity {
         if (message.getMessage().equals("")) {
             return;
         }
-        //publish the message in an openchat
-        mDatabaseRef.child("openchat").child(message.getId()).setValue(message);
+        //publish the message in an chatRooms
+        mDatabaseRef.child("chatRooms").child(chatRoomId).child(message.getId()).setValue(message);
         // add a message object to the list
         messageArrayList.add(message);
         this.inputMessage.setText("");
         // make adapter to update its view and add a new message to the screen
         //mAdapter.notifyDataSetChanged();
         new SayTask().execute(message.getMessage());
-        scrollToMostRecentMessage();
+        //scrollToMostRecentMessage();
     }
 
     // Sending a message to Watson Assistant Service
@@ -363,7 +372,7 @@ public class MainActivity extends AppCompatActivity {
 
         this.inputMessage.setText("");
         mAdapter.notifyDataSetChanged();
-        scrollToMostRecentMessage();
+        //scrollToMostRecentMessage();
         Thread thread = new Thread(new Runnable() {
             public void run() {
                 try {
@@ -397,7 +406,7 @@ public class MainActivity extends AppCompatActivity {
 
                         // speak the message
                         new SayTask().execute(outMessage.getMessage());
-                        scrollToMostRecentMessage();
+                        //scrollToMostRecentMessage();
                     }
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -541,6 +550,7 @@ public class MainActivity extends AppCompatActivity {
      * created: 26/02/2019 by J.Cistiakovas
      * last modified: 26/02/2019 by J.Cistiakovas
      */
+    /*
     private void scrollToMostRecentMessage() {
         runOnUiThread(new Runnable() {
             public void run() {
@@ -553,6 +563,7 @@ public class MainActivity extends AppCompatActivity {
             }
         });
     }
+    */
 
 /*    public void onPause() {
 
@@ -638,6 +649,7 @@ public class MainActivity extends AppCompatActivity {
         //Firebase realtime database initialisation
         mDatabase = FirebaseDatabase.getInstance();
         mDatabaseRef = mDatabase.getReference();
+        /*
         mDatabaseRef.child("openchat").addChildEventListener(new ChildEventListener() {
             // TODO: not load previous conversation, possibly use timestamps
             @Override
@@ -655,7 +667,7 @@ public class MainActivity extends AppCompatActivity {
                 }
                 messageArrayList.add(newMessage);
                 //mAdapter.notifyDataSetChanged();
-                scrollToMostRecentMessage();
+                //scrollToMostRecentMessage();
             }
 
             @Override
@@ -678,31 +690,139 @@ public class MainActivity extends AppCompatActivity {
 
             }
         });
+        */
+    }
+
+
+    /**
+     * This method checks the state of the game we have joined
+     * created: 11/03/2019 by C.Coady
+     * last modified: 11/03/2019 by C.Coady
+     */
+    private void gameState(){
+        final DatabaseReference currentGameRef = mDatabaseRef.child("availableGames");
+        ValueEventListener currentGameStatusListener = new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                if(gameJoined && chatRoomId != null){
+                    gameState = dataSnapshot.child(chatRoomId).getValue().toString();
+                    if(gameState.equals("complete")){
+                        //make the user guess now
+                        showToast("the game is now over", Toast.LENGTH_LONG);
+                    }
+                }
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+                // Getting Post failed, log a message
+                Log.w(TAG, "loadPost:onCancelled", databaseError.toException());
+                // ...
+            }
+        };
+        currentGameRef.addValueEventListener(currentGameStatusListener);
+    }
+
+
+
+    /**
+     * This method checks the database to see if any players
+     * are online and waiting for a game
+     * created: 11/03/2019 by C.Coady
+     * last modified: 11/03/2019 by C.Coady
+     */
+
+    private void matchmaking() {
+        //initialse the firebase database
+        createFirebaseServices();
+        //create text-to-speech and voice-to-text services
+        createWatsonServices();
+        isHumanGame = true;
+        //mDatabaseRef = mDatabase.getReference();
+        final DatabaseReference availableGameRef = mDatabaseRef.child("availableGames");
+        ValueEventListener availableGameListener = new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot availableGame) {
+                for (DataSnapshot game: availableGame.getChildren()) {
+                    String key = game.getKey();
+                    String status = game.getValue().toString();
+                    if(status.equals("empty") && !gameJoined){
+                        gameJoined = true;
+                        chatRoomId = key;
+                        showToast("Joined game " + chatRoomId, Toast.LENGTH_LONG);
+                    }
+                }
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+                //error loading from the database
+            }
+        };
+        availableGameRef.addListenerForSingleValueEvent(availableGameListener);
+
+        gameState();
+
+        //wait for a bit to read from the database
+        double currentWaitTime = 0;
+        double delay = 100000000.0;
+        while(!gameJoined && currentWaitTime < delay){
+            currentWaitTime++;
+        }
+
+        //we have not found a game
+        if(!gameJoined){
+            //create a game
+            createGame();
+            showToast("Created game " + chatRoomId, Toast.LENGTH_LONG);
+            //update game status
+            gameJoined = true;
+            //wait for a bit to see if anyone joins the game
+            for(double playerWait = 0; playerWait < delay*5; playerWait++){}
+            if(gameState.equals("empty")){
+                //make this a bot game
+                isHumanGame = false;
+                createWatsonAssistant();
+                showToast("This is a game against bot!", Toast.LENGTH_LONG);
+                Log.d(TAG, "This is a game against bot!");
+                availableGameRef.child(chatRoomId).setValue("full");
+            }
+        }
+        else{
+            //join the game and set it to full
+            showToast("This is a game against human!", Toast.LENGTH_LONG);
+            Log.d(TAG, "This is a game against human!");
+            //make the game session full
+            availableGameRef.child(chatRoomId).setValue("full");
+        }
     }
 
     /**
-     * Method that deals with matchmaking and assigning opponent to the user
-     * created:
-     * last modified:
+     * This method takes creates an availableGame which players can join
+     * Returns an id to allow players to join the availableGame
+     * created: 11/03/2019 by C.Coady
+     * last modified: 11/03/2019 by C.Coady
      */
-    private void matchMaking() {
+    private boolean createGame(){
+        //get a reference to the chat rooms section of the database
+        DatabaseReference chatRef = mDatabaseRef.child("availableGames");
+        //create a new chatroom with a unique reference
+        chatRef = chatRef.push();
+        //update the chatroom id to the newly generated one
+        chatRoomId = chatRef.getKey();
+        //make this chatroom empty
+        chatRef.setValue("empty");
+        //TODO add some error checking if we fail to connect to the database
+        return true;
+    }
 
-        try {
-            Thread.sleep(50);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-
-        if (Math.random() > 0.5) {
-            isHumanGame = false;
-            showToast("This is a game against bot!", Toast.LENGTH_LONG);
-            Log.d(TAG, "This is a game against bot!");
-        } else {
-            isHumanGame = true;
-            showToast("This is a game against human!", Toast.LENGTH_LONG);
-            Log.d(TAG, "This is a game against human!");
-        }
-
+    private boolean endGame(){
+        //get a reference to the chat rooms section of the database
+        DatabaseReference chatRef = mDatabaseRef.child("availableGames");
+        //make this chatroom complete
+        chatRef.child(chatRoomId).setValue("complete");
+        //TODO add some error checking if we fail to connect to the database
+        return true;
     }
 
     /**
@@ -754,7 +874,6 @@ public class MainActivity extends AppCompatActivity {
                     @Override
                     public void onFinish() {
                         stopTimer();
-
                     }
                 };
                 mCountDownTimer.start();
@@ -778,6 +897,8 @@ public class MainActivity extends AppCompatActivity {
         mTimerTime.setText(timeLeftText);
     }
 
+
+
     /**
      * Stops the timer and updates the game state
      * created: 14/03/2019 by J.Cistiakovas
@@ -791,9 +912,43 @@ public class MainActivity extends AppCompatActivity {
         mCountDownTimer.cancel();
         gameStatus = GAME_STOPPED;
         mTimerRunning = false;
+        endGame();
         showToast("Timer stop pressed", Toast.LENGTH_SHORT);
         Log.d(TAG,"Timer stop pressed.");
     }
+
+    private int[] fileReading(){
+        int[] scores = new int[2];
+        try {
+            FileReader input = new FileReader("scores.txt");
+            BufferedReader reader = new BufferedReader(input);
+            for(int i = 0; i < scores.length; i++){
+                scores[i] = Integer.valueOf(reader.readLine());
+            }
+            reader.close();
+            input.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return scores;
+    }
+
+    private int[] fileWriting(int[] scores){
+        try {
+            FileWriter output = new FileWriter("scores.txt");
+            BufferedWriter writer = new BufferedWriter(output);
+            for(int i = 0; i < scores.length; i++){
+                writer.write((char) scores[i]);
+            }
+            writer.close();
+            output.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return scores;
+    }
+
+
 }
 
 
