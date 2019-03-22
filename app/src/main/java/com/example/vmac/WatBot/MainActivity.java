@@ -245,7 +245,6 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         });
-        //TODO: find out why it is necessary to send an empty initial message?
         //sendMessage();
 
         //timer listener - DETECTING WHEN USER GUESSES HUMAN
@@ -553,9 +552,11 @@ public class MainActivity extends AppCompatActivity {
     /**
      * Method that scrolls the recycler view to the most recent message
      * created: 26/02/2019 by J.Cistiakovas
-     * last modified: 26/02/2019 by J.Cistiakovas
+     * last modified: 20/03/2019 by J.Cistiakovas - fixed NullPointerException
      */
     private void scrollToMostRecentMessage() {
+        if(MainActivity.this == null)
+            return;
         runOnUiThread(new Runnable() {
             public void run() {
                 mAdapter.notifyDataSetChanged();
@@ -722,9 +723,11 @@ public class MainActivity extends AppCompatActivity {
     /**
      * Method that makes a Toast via a UI thread
      * created: 11/03/2019 by J.Cistiakovas
-     * last modified: 11/03/2019 by J.Cistiakovas
+     * last modified: 20/03/2019 by J.Cistiakovas - fixed NullPointerException
      */
     private void showToast(final String string, final int duration) {
+        if(MainActivity.this == null)
+            return;
         runOnUiThread(new Runnable() {
             public void run() {
                 Toast.makeText(mContext, string, duration).show();
@@ -737,46 +740,11 @@ public class MainActivity extends AppCompatActivity {
      * created: 14/03/2019 by J.Cistiakovas
      * last modified: 14/03/2019 by J.Cistiakovas
      */
+    //TODO: save the score
     private void timerStartStop(){
         if(mTimerRunning && gameStatus==GAME_ACTIVE){
             //stop timer
             stopTimer();
-
-            //Takes to results screen saying if it was a bot or human
-            if(isHumanGame)  //if human
-            {
-                Intent human_results_intent = new Intent(this, results_2.class);
-
-                //pass the time it took the user to complete the game into results
-                int minutes = (int) (mTimeLeft / 60000);
-                int seconds = (int) (mTimeLeft % 60000) / 1000;
-                minutes = 4 - minutes;              //get time taken by subtracting
-                                                    // time left from time elapsed
-                                                    //NOTE: not sure why it is 4- mins not 5 but works
-                seconds = 60 - seconds;
-                String timeLeftText;
-                timeLeftText = String.format("%02d mins : %02d seconds",minutes, seconds);
-                human_results_intent.putExtra("timeTaken",timeLeftText);
-
-                startActivity(human_results_intent);
-            }
-            else //if bot
-            {
-                Intent bot_results_intent = new Intent(this, results.class);
-
-                //pass the time it took the user to complete the game into results
-                int minutes = (int) (mTimeLeft / 60000);
-                int seconds = (int) (mTimeLeft % 60000) / 1000;
-                minutes = 4 - minutes;              //get time taken by subtracting
-                                                    // time left from time elapsed
-                                                    //NOTE: not sure why it is 4- mins not 5 but works
-                seconds = 60 - seconds;
-                String timeLeftText;
-                timeLeftText = String.format("%02d mins : %02d seconds",minutes, seconds);
-                bot_results_intent.putExtra("timeTaken",timeLeftText);
-
-                startActivity(bot_results_intent);
-            }
         }
         else {
             //not running, start the timer
@@ -788,9 +756,11 @@ public class MainActivity extends AppCompatActivity {
     /**
      * Method creates and starts a new timer
      * created: 14/03/2019 by J.Cistiakovas
-     * last modified: 14/03/2019 by J.Cistiakovas
+     * last modified: 20/03/2019 by J.Cistiakovas - fixed NullPointerException
      */
     private void startTimer(){
+        if(MainActivity.this == null)
+            return;
         //set up the timer
         runOnUiThread(new Runnable() {
             @Override
@@ -832,7 +802,8 @@ public class MainActivity extends AppCompatActivity {
     /**
      * Stops the timer and updates the game state
      * created: 14/03/2019 by J.Cistiakovas
-     * last modified: 14/03/2019 by J.Cistiakovas
+     * last modified: 20/03/2019 by L.Brennan
+     * modified: 14/03/2019 by J.Cistiakovas
      */
     //TODO: add actions to be done as the game is stopped/ended
     private void stopTimer() {
@@ -844,6 +815,42 @@ public class MainActivity extends AppCompatActivity {
         mTimerRunning = false;
         showToast("Timer stop pressed", Toast.LENGTH_SHORT);
         Log.d(TAG,"Timer stop pressed.");
+
+        //Takes to results screen saying if it was a bot or human
+        if(isHumanGame)  //if human
+        {
+            Intent human_results_intent = new Intent(this, results_2.class);
+
+            //pass the time it took the user to complete the game into results
+            int minutes = (int) (mTimeLeft / 60000);
+            int seconds = (int) (mTimeLeft % 60000) / 1000;
+            minutes = 4 - minutes;              //get time taken by subtracting
+            // time left from time elapsed
+            //NOTE: not sure why it is 4- mins not 5 but works
+            seconds = 60 - seconds;
+            String timeLeftText;
+            timeLeftText = String.format("%02d mins : %02d seconds",minutes, seconds);
+            human_results_intent.putExtra("timeTaken",timeLeftText);
+
+            startActivity(human_results_intent);
+        }
+        else //if bot
+        {
+            Intent bot_results_intent = new Intent(this, results.class);
+
+            //pass the time it took the user to complete the game into results
+            int minutes = (int) (mTimeLeft / 60000);
+            int seconds = (int) (mTimeLeft % 60000) / 1000;
+            minutes = 4 - minutes;              //get time taken by subtracting
+            // time left from time elapsed
+            //NOTE: not sure why it is 4- mins not 5 but works
+            seconds = 60 - seconds;
+            String timeLeftText;
+            timeLeftText = String.format("%02d mins : %02d seconds",minutes, seconds);
+            bot_results_intent.putExtra("timeTaken",timeLeftText);
+
+            startActivity(bot_results_intent);
+        }
     }
 
 }
