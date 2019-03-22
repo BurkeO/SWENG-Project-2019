@@ -186,6 +186,8 @@ public class MainActivity extends AppCompatActivity {
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
+                        if(MainActivity.this == null)
+                            return;
                         mProgressBar.setVisibility(View.GONE);
                         recyclerView.setVisibility(View.VISIBLE);
                         mAdapter = new ChatAdapter(messageArrayList, myId);
@@ -555,10 +557,10 @@ public class MainActivity extends AppCompatActivity {
      * last modified: 20/03/2019 by J.Cistiakovas - fixed NullPointerException
      */
     private void scrollToMostRecentMessage() {
-        if(MainActivity.this == null)
-            return;
         runOnUiThread(new Runnable() {
             public void run() {
+                if(MainActivity.this == null || mAdapter == null)
+                    return;
                 mAdapter.notifyDataSetChanged();
                 if (mAdapter.getItemCount() > 1) {
                     recyclerView.getLayoutManager().smoothScrollToPosition(recyclerView, null, mAdapter.getItemCount() - 1);
@@ -726,10 +728,10 @@ public class MainActivity extends AppCompatActivity {
      * last modified: 20/03/2019 by J.Cistiakovas - fixed NullPointerException
      */
     private void showToast(final String string, final int duration) {
-        if(MainActivity.this == null)
-            return;
         runOnUiThread(new Runnable() {
             public void run() {
+                if(MainActivity.this == null)
+                    return;
                 Toast.makeText(mContext, string, duration).show();
             }
         });
@@ -759,12 +761,12 @@ public class MainActivity extends AppCompatActivity {
      * last modified: 20/03/2019 by J.Cistiakovas - fixed NullPointerException
      */
     private void startTimer(){
-        if(MainActivity.this == null)
-            return;
         //set up the timer
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
+                if(MainActivity.this == null)
+                    return;
                 mCountDownTimer = new CountDownTimer(gameLength,1000) {
                     @Override
                     public void onTick(long l) {
