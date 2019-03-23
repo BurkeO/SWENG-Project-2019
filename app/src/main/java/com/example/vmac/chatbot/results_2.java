@@ -1,17 +1,16 @@
 package com.example.vmac.chatbot;
 
 import android.content.Intent;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.view.View;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.example.vmac.WatBot.R;
 
-//RESULT SCREEN IF THEY USER PLAYED A HUMAN
-public class results_2 extends AppCompatActivity {
 
+//RESULT SCREEN IF THEY USER PLAYED A HUMAN
+public class results_2 extends genericResults {
+
+    private static String TAG = "results_2";
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -26,6 +25,7 @@ public class results_2 extends AppCompatActivity {
         //display the time taken to the screen - using the layout screen
         TextView timeToDisplay = (TextView) findViewById(R.id.timeHumanText);
         timeToDisplay.setText(timeTaken);
+        changeScore(genericResults.WIN);
     }
 
     //avoid user going back into game when it is finished. Back to home screen.
@@ -34,4 +34,5 @@ public class results_2 extends AppCompatActivity {
         Intent backToHome = new Intent(this, home_screen.class);
         startActivity(backToHome);
     }
+
 }

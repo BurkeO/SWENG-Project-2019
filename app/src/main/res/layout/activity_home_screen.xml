@@ -77,5 +77,21 @@
         app:layout_constraintTop_toBottomOf="@+id/title"
         app:srcCompat="@drawable/robot" />
 
+    <TextView
+        android:id="@+id/scoreHomeScreen"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="160dp"
+        android:layout_marginTop="42dp"
+        android:layout_marginEnd="153dp"
+        android:layout_marginBottom="35dp"
+        android:text="TextView"
+        android:textAlignment="center"
+        android:textSize="24sp"
+        app:layout_constraintBottom_toTopOf="@+id/new_game_button"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/imageView" />
+
 
 </android.support.constraint.ConstraintLayout>

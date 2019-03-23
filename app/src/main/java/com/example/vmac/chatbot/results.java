@@ -1,21 +1,13 @@
 package com.example.vmac.chatbot;
 
 import android.content.Intent;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.view.Gravity;
-import android.view.LayoutInflater;
-import android.view.MotionEvent;
-import android.view.View;
-import android.widget.LinearLayout;
-import android.widget.PopupWindow;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.example.vmac.WatBot.R;
 
 //RESULT SCREEN IF THEY USER PLAYED A BOT
-public class results extends AppCompatActivity {
+public class results extends genericResults {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -32,6 +24,8 @@ public class results extends AppCompatActivity {
         //display the time taken to the screen - using the layout screen
         TextView timeToDisplay = (TextView) findViewById(R.id.timeBotText);
         timeToDisplay.setText(timeTaken);
+
+        changeScore(genericResults.WIN);
     }
 
     //avoid user going back into game when it is finished. Back to home screen.
@@ -40,4 +34,5 @@ public class results extends AppCompatActivity {
         Intent backToHome = new Intent(this, home_screen.class);
         startActivity(backToHome);
     }
+
 }
