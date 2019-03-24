@@ -32,12 +32,12 @@
         android:layout_height="66dp"
         android:layout_below="@+id/title"
         android:layout_marginStart="112dp"
-        android:layout_marginBottom="50dp"
+        android:layout_marginTop="80dp"
         android:background="@color/colorPrimary"
         android:text="@string/start_game"
         android:textColor="@color/bg_bubble_watbot"
-        app:layout_constraintBottom_toTopOf="@+id/contact_button"
-        app:layout_constraintStart_toStartOf="parent" />
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/imageView" />
 
     <!--button pressed to go to the settings screen.-->
     <Button
@@ -46,12 +46,12 @@
         android:layout_height="wrap_content"
         android:layout_centerHorizontal="true"
         android:layout_marginStart="160dp"
-        android:layout_marginBottom="50dp"
+        android:layout_marginTop="50dp"
         android:background="@color/colorPrimary"
         android:text="@string/contact"
         android:textColor="@color/bg_bubble_watbot"
-        app:layout_constraintBottom_toTopOf="@+id/settings_button"
-        app:layout_constraintStart_toStartOf="parent" />
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/new_game_button" />
 
     <!--button pressed to get in contact with the app makers an take you to the contact screen.-->
     <Button
@@ -60,12 +60,12 @@
         android:layout_height="45dp"
         android:layout_centerHorizontal="true"
         android:layout_marginStart="160dp"
-        android:layout_marginBottom="50dp"
+        android:layout_marginTop="50dp"
         android:background="@color/colorPrimary"
         android:text="@string/settings"
         android:textColor="@color/bg_bubble_watbot"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="parent" />
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/contact_button" />
 
     <ImageView
         android:id="@+id/imageView"
@@ -77,18 +77,17 @@
         app:layout_constraintTop_toBottomOf="@+id/title"
         app:srcCompat="@drawable/robot" />
 
+
     <TextView
         android:id="@+id/scoreHomeScreen"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="160dp"
-        android:layout_marginTop="42dp"
+        android:layout_marginTop="25dp"
         android:layout_marginEnd="153dp"
-        android:layout_marginBottom="35dp"
         android:text="TextView"
         android:textAlignment="center"
         android:textSize="24sp"
-        app:layout_constraintBottom_toTopOf="@+id/new_game_button"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/imageView" />
