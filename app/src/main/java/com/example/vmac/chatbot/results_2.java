@@ -25,7 +25,8 @@ public class results_2 extends genericResults {
         //display the time taken to the screen - using the layout screen
         TextView timeToDisplay = (TextView) findViewById(R.id.timeHumanText);
         timeToDisplay.setText(timeTaken);
-        changeScore(genericResults.WIN);
+        boolean result = in.getBooleanExtra("guessedRight", false);
+        changeScore(result);
     }
 
     //avoid user going back into game when it is finished. Back to home screen.

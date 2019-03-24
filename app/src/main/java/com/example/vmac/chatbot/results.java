@@ -25,7 +25,8 @@ public class results extends genericResults {
         TextView timeToDisplay = (TextView) findViewById(R.id.timeBotText);
         timeToDisplay.setText(timeTaken);
 
-        changeScore(genericResults.WIN);
+        boolean result = in.getBooleanExtra("guessedRight", false);
+        changeScore(result);
     }
 
     //avoid user going back into game when it is finished. Back to home screen.
