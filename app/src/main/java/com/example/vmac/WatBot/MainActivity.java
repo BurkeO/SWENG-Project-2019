@@ -124,6 +124,8 @@ public class MainActivity extends AppCompatActivity {
     private long mTimeLeft;
     private boolean mTimerRunning;
 
+    private boolean guessedRight;
+
     /**
      * Method to be called when activity is created
      * created:
@@ -261,6 +263,11 @@ public class MainActivity extends AppCompatActivity {
         guessButton1.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                if(isHumanGame){
+                    guessedRight = true;
+                }else{
+                    guessedRight = false;
+                }
                 timerStartStop();
             }
         });
@@ -269,6 +276,11 @@ public class MainActivity extends AppCompatActivity {
         guessButton2.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                if(!isHumanGame){
+                    guessedRight = true;
+                }else{
+                    guessedRight = false;
+                }
                 timerStartStop();
             }
         });
@@ -1000,7 +1012,7 @@ public class MainActivity extends AppCompatActivity {
             String timeLeftText;
             timeLeftText = String.format("%02d mins : %02d seconds",minutes, seconds);
             human_results_intent.putExtra("timeTaken",timeLeftText);
-
+            human_results_intent.putExtra("guessedRight", guessedRight);
             startActivity(human_results_intent);
         }
         else //if bot
@@ -1017,6 +1029,7 @@ public class MainActivity extends AppCompatActivity {
             String timeLeftText;
             timeLeftText = String.format("%02d mins : %02d seconds",minutes, seconds);
             bot_results_intent.putExtra("timeTaken",timeLeftText);
+            bot_results_intent.putExtra("guessedRight", guessedRight);
             endGame();
             startActivity(bot_results_intent);
         }
