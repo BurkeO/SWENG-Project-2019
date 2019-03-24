@@ -2,24 +2,24 @@ package com.example.vmac.WatBot;
 
 /**
  * Created by J.Cistiakovas on 22/03/2019
- * last modified: 22/03/2019 by J.Cistiakovas
+ * last modified: 24/03/2019 by C.Coady - added the type attribute
  */
 
 import java.io.Serializable;
 
 public class Message implements Serializable {
-  private String id, message;
-  private String sender;
+  private String id, message, sender, type;
 
 
   public Message() {
   }
 
-  public Message(String id, String message, String createdAt) {
-    this.id = id;
-    this.message = message;
+  public String getType(){
+    return type;
+  }
 
-
+  public void setType(String type){
+    this.type = type;
   }
 
   public String getSender() {

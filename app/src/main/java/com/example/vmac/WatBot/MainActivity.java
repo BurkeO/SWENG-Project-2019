@@ -42,6 +42,7 @@ import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 import com.ibm.watson.developer_cloud.android.library.audio.MicrophoneHelper;
 import com.ibm.watson.developer_cloud.android.library.audio.MicrophoneInputStream;
 import com.ibm.watson.developer_cloud.android.library.audio.StreamPlayer;
@@ -103,8 +104,11 @@ public class MainActivity extends AppCompatActivity {
     //reference to a game obect
     //private TuringGame currentGame;
     private boolean isHumanGame;
+    private boolean gameJoined;
+    private String gameState;
     private int messageNum;
     private String myId;
+    private String chatRoomId;
     private int gameStatus;
     private static final int GAME_NOT_ACTIVE = 1;
     private static final int GAME_ACTIVE = 5;
@@ -130,6 +134,10 @@ public class MainActivity extends AppCompatActivity {
      * modified : 07/03/2019 by J.Cistiakovas - added a function call to matchmaking
      * modified : 22/02/2019 by J.Cistiakovas - added database listener
      * modified: 21/02/2019 by J.Cistiakovas - added anonymous sign in functionality
+     * modified: 11/03/2019 - 24/03/2019 by C.Coady - added matchmaking functionality along with some
+     *                                                  tweaks to the database structure.
+     *                                              - added funcitonality so all messages are pushed
+     *                                              to firebase for both human and bot games.
      */
 
     @Override
@@ -174,7 +182,7 @@ public class MainActivity extends AppCompatActivity {
         new Thread(new Runnable() {
             @Override
             public void run() {
-                matchMaking();  //find an opponent
+                matchmaking();  //find an opponent
                 initialRequest = true;
                 createWatsonServices(); //create text-to-speech and voice-to-text services
                 if (isHumanGame) {
@@ -332,7 +340,8 @@ public class MainActivity extends AppCompatActivity {
     /**
      * Method that sends a message to a human play via Firebase realtime databse
      * created: 22:00 23/03/2019 by J.Cistiakovas
-     * last modified: 22:00 23/03/2019 by J.Cistiakovas
+     * last modified: 19:00 24/03/2019 by C.Coady - updated messages to include new type
+     * attribute. This denotes if the message was sent by a human or a bot.
      */
     private void sendMessageHuman() {
         //create a new TuringMessage object using values from the editText box
@@ -341,13 +350,14 @@ public class MainActivity extends AppCompatActivity {
         message.setMessage(this.inputMessage.getText().toString().trim());
         message.setId(id);
         message.setSender(myId);
+        message.setType("human");
 
         //return if message is empty
         if (message.getMessage().equals("")) {
             return;
         }
-        //publish the message in an openchat
-        mDatabaseRef.child("openchat").child(message.getId()).setValue(message);
+        //publish the message in an chatRooms
+        mDatabaseRef.child("chatRooms").child(chatRoomId).child(message.getId()).setValue(message);
         // add a message object to the list
         messageArrayList.add(message);
         this.inputMessage.setText("");
@@ -365,12 +375,14 @@ public class MainActivity extends AppCompatActivity {
             inputMessage.setMessage(inputmessage);
             inputMessage.setId("1");
             inputMessage.setSender(myId);
+            inputMessage.setType("human");
             messageArrayList.add(inputMessage);
         } else {
             Message inputMessage = new Message();
             inputMessage.setMessage(inputmessage);
             inputMessage.setId("100");
             inputMessage.setSender(myId);
+            inputMessage.setType("human");
             this.initialRequest = false;
             showToast("Tap on the message for Voice", Toast.LENGTH_LONG);
 
@@ -613,7 +625,8 @@ public class MainActivity extends AppCompatActivity {
     /**
      * Method to initialise Firebase services, such as Auth and Realtime Database
      * created: 04/03/2019 by J.Cistiakovas
-     * last modified: 18/03/2019 by J.Cistiakovas - added initialisation of FirebaseApp, as otherwise it was crashing
+     * last modified: 24/03/2019 by C.Coady - removed message listener as this is handled in the
+     * loadMessages method
      */
     private void createFirebaseServices() {
         //Firebase anonymous Auth
@@ -655,71 +668,225 @@ public class MainActivity extends AppCompatActivity {
         //Firebase realtime database initialisation
         mDatabase = FirebaseDatabase.getInstance();
         mDatabaseRef = mDatabase.getReference();
-        mDatabaseRef.child("openchat").addChildEventListener(new ChildEventListener() {
-            // TODO: not load previous conversation, possibly use timestamps
-            @Override
-            public void onChildAdded(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
-                if (initialRequest) {
-                    initialRequest = false;
-                    return;
-                }
-                //retrieve the message from the datasnapshot
-                Message newMessage = dataSnapshot.getValue(Message.class);
-                //TODO: deal with double messages, sould not be much of  a problem if we start a new chat each time
-                if (TextUtils.equals(newMessage.getSender(), mAuth.getUid())) {
-                    //don't add own message
-                    return;
-                }
-                messageArrayList.add(newMessage);
-                //mAdapter.notifyDataSetChanged();
-                scrollToMostRecentMessage();
-            }
-
-            @Override
-            public void onChildChanged(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
-
-            }
-
-            @Override
-            public void onChildRemoved(@NonNull DataSnapshot dataSnapshot) {
-
-            }
-
-            @Override
-            public void onChildMoved(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
-
-            }
-
-            @Override
-            public void onCancelled(@NonNull DatabaseError databaseError) {
-
-            }
-        });
     }
 
     /**
-     * Method that deals with matchmaking and assigning opponent to the user
-     * created:
-     * last modified:
+     * This method starts a listener on the game state, if the game
+     * is complete it will update the local gameState variable which
+     * allows us to change to a guessing screen etc.
+     * created: 11/03/2019 by C.Coady
+     * last modified: 24/03/2019 by C.Coady
      */
-    private void matchMaking() {
+    private void gameState(){
+        //Get a reference to the availableGames section of the database
+        final DatabaseReference currentGameRef = mDatabaseRef.child("availableGames");
+        //Create a new listener to listen for changes in the game state
+        ValueEventListener currentGameStatusListener = new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                //if we are currently in a game
+                if(gameJoined && chatRoomId != null){
+                    //Take a snapshot of the current game state from the database
+                    gameState = dataSnapshot.child(chatRoomId).getValue().toString();
+                    if(gameState.equals("complete")){
+                        //make the user guess now
+                        showToast("the game is now over", Toast.LENGTH_LONG);
+                    }
+                }
+            }
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+                // Getting Post failed, log a message
+                Log.w(TAG, "loadPost:onCancelled", databaseError.toException());
+            }
+        };
+        //Attach the listener to the database reference
+        currentGameRef.addValueEventListener(currentGameStatusListener);
+    }
 
-        try {
-            Thread.sleep(50);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
+
+
+    /**
+     * This method handles all of the matchmaking for the game.
+     * When a game starts, the user will check to see if there are any 'empty'
+     * chatrooms. If there are, the user will join (this is a human to human game) and
+     * a listener will be started on that chatroom to check for new messages.
+     * If no chatrooms are available the user will create one and wait to see if someone
+     * joins. If no one joins the user will be matched with a bot and the game will start.
+     * created: 11/03/2019 by C.Coady
+     * last modified: 24/03/2019 by C.Coady
+     */
+    private void matchmaking() {
+        //initialse the firebase database
+        createFirebaseServices();
+        //create text-to-speech and voice-to-text services
+        createWatsonServices();
+        isHumanGame = true;
+        //mDatabaseRef = mDatabase.getReference();
+        final DatabaseReference availableGameRef = mDatabaseRef.child("availableGames");
+        ValueEventListener availableGameListener = new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot availableGame) {
+                for (DataSnapshot game: availableGame.getChildren()) {
+                    String key = game.getKey();
+                    String status = game.getValue().toString();
+                    if(status.equals("empty") && !gameJoined){
+                        gameJoined = true;
+                        chatRoomId = key;
+                        showToast("Joined game " + chatRoomId, Toast.LENGTH_LONG);
+                    }
+                }
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+                //error loading from the database
+            }
+        };
+        availableGameRef.addListenerForSingleValueEvent(availableGameListener);
+        //start a listener to see if the game has ended
+        gameState();
+        //wait for a bit to read from the database
+        double currentWaitTime = 0;
+        double delay = 1000000000.0;
+        while(!gameJoined && currentWaitTime < delay){
+            currentWaitTime++;
         }
+        //we have not found a game
+        if(!gameJoined){
+            //create a game
+            createGame();
+            showToast("Created game " + chatRoomId, Toast.LENGTH_LONG);
+            //update game status
+            gameJoined = true;
+            //wait for a bit to see if anyone joins the game
+            for(double playerWait = 0; playerWait < delay*2; playerWait++){}
+            if(gameState.equals("empty")){
+                //make this a bot game
+                isHumanGame = false;
+                createWatsonAssistant();
+                showToast("This is a game against a bot!", Toast.LENGTH_LONG);
+                Log.d(TAG, "This is a game against a bot!");
+                availableGameRef.child(chatRoomId).setValue("full");
 
-        if (Math.random() > 0.5) {
-            isHumanGame = false;
-            showToast("This is a game against bot!", Toast.LENGTH_LONG);
-            Log.d(TAG, "This is a game against bot!");
-        } else {
-            isHumanGame = true;
-            showToast("This is a game against human!", Toast.LENGTH_LONG);
-            Log.d(TAG, "This is a game against human!");
+                if (Math.random() < 0.5) {
+                    initialRequest = false;
+                }
+                else{
+                    initialRequest = true;
+                }
+            }
         }
+        else{
+            //join the game and set it to full
+            showToast("This is a game against a human!", Toast.LENGTH_LONG);
+            Log.d(TAG, "This is a game against a human!");
+            //make the game session full
+            availableGameRef.child(chatRoomId).setValue("full");
+        }
+        //load message listener
+        loadMessages();
+    }
 
+    /**
+     * This method starts a listener on the chatRoom in the database.
+     * When ever a message is added to the chatRoom the listener will
+     * add the new message to the arrayList of messages so it can be
+     * displayed on screen
+     * created: 11/03/2019 by C.Coady
+     * last modified: 23/03/2019 by C.Coady
+     */
+    private void loadMessages(){
+        if(isHumanGame){
+            DatabaseReference messageRef = mDatabaseRef.child("chatRooms");
+            messageRef.child(chatRoomId).addChildEventListener(new ChildEventListener() {
+                // TODO: not load previous conversation, possibly use timestamps
+                @Override
+                public void onChildAdded(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
+                    //retrieve the message from the datasnapshot
+                    Message newMessage = dataSnapshot.getValue(Message.class);
+                    //TODO: deal with double messages, sould not be much of  a problem if we start a new chat each time
+                    if (TextUtils.equals(newMessage.getSender(), mAuth.getUid())) {
+                        //don't add own message
+                        return;
+                    }
+                    messageArrayList.add(newMessage);
+                    //mAdapter.notifyDataSetChanged();
+                    scrollToMostRecentMessage();
+                }
+                @Override
+                public void onChildChanged(@NonNull DataSnapshot dataSnapshot, @Nullable String s) { }
+                @Override
+                public void onChildRemoved(@NonNull DataSnapshot dataSnapshot) { }
+                @Override
+                public void onChildMoved(@NonNull DataSnapshot dataSnapshot, @Nullable String s) { }
+                @Override
+                public void onCancelled(@NonNull DatabaseError databaseError) { }
+            });
+        }
+    }
+
+    /**
+     * This method loops through the arrayList of messages and uploads each one
+     * to the chat room corresponding to 'chatRoomId' on the database.
+     * created: 23/03/2019 by C.Coady
+     * last modified: 24/03/2019 by C.Coady
+     */
+    private void uploadMessages(){
+        //get a reference to the chat rooms section of the database
+        DatabaseReference chatRef = mDatabaseRef.child("chatRooms").child(chatRoomId);
+
+        //loop through messages and upload them to the chat
+        for(int i = 0; i < messageArrayList.size(); i++){
+            chatRef = chatRef.push();
+            Message message = (Message) messageArrayList.get(i);
+            message.setId(chatRef.getKey());
+            //publish the message in an chatRooms
+            chatRef.setValue(message);
+            chatRef = mDatabaseRef.child("chatRooms").child(chatRoomId);
+        }
+    }
+
+    /**
+     * This method takes creates an availableGame which players can join.
+     * A random game key is generated by firebase which is used to identify
+     * the game 'chatRoomId'.
+     * The status of the new chatroom is set to empty while we wait for
+     * other players to join the game.
+     * created: 21/03/2019 by C.Coady
+     * last modified: 24/03/2019 by C.Coady
+     */
+    private boolean createGame(){
+        //get a reference to the chat rooms section of the database
+        DatabaseReference chatRef = mDatabaseRef.child("availableGames");
+        //create a new chatroom with a unique reference
+        chatRef = chatRef.push();
+        //update the chatroom id to the newly generated one
+        chatRoomId = chatRef.getKey();
+        //make this chatroom empty
+        chatRef.setValue("empty");
+        //TODO add some error checking if we fail to connect to the database
+        return true;
+    }
+
+    /**
+     * This method sets the gameState to 'complete' on the availableGames section
+     * of the database and then uploads the messages to the database if the game
+     * was against a bot those messages are only stored locally.
+     * created: 21/03/2019 by C.Coady
+     * last modified: 24/03/2019 by C.Coady
+     */
+    private boolean endGame(){
+        //get a reference to the chat rooms section of the database
+        DatabaseReference chatRef = mDatabaseRef.child("availableGames");
+        //make this chatroom complete
+        chatRef.child(chatRoomId).setValue("complete");
+        //if the game is against a bot, push messages to the database
+        if(!isHumanGame){
+            uploadMessages();
+        }
+        //TODO add some error checking if we fail to connect to the database
+        return true;
     }
 
     /**
@@ -850,7 +1017,7 @@ public class MainActivity extends AppCompatActivity {
             String timeLeftText;
             timeLeftText = String.format("%02d mins : %02d seconds",minutes, seconds);
             bot_results_intent.putExtra("timeTaken",timeLeftText);
-
+            endGame();
             startActivity(bot_results_intent);
         }
     }
