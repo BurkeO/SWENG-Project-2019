@@ -976,7 +976,7 @@ public class MainActivity extends AppCompatActivity {
      */
     //TODO: add actions to be done as the game is stopped/ended
     private void stopTimer() {
-        //stop the game and move to other activity?
+        //stop the game and move to other activity - results being displayed
 
         //change the states
         mCountDownTimer.cancel();
@@ -994,8 +994,8 @@ public class MainActivity extends AppCompatActivity {
             int minutes = (int) (mTimeLeft / 60000);
             int seconds = (int) (mTimeLeft % 60000) / 1000;
             minutes = 4 - minutes;              //get time taken by subtracting
-            // time left from time elapsed
-            //NOTE: not sure why it is 4- mins not 5 but works
+                                               // time left from time elapsed
+
             seconds = 60 - seconds;
             String timeLeftText;
             timeLeftText = String.format("%02d mins : %02d seconds",minutes, seconds);
@@ -1011,8 +1011,7 @@ public class MainActivity extends AppCompatActivity {
             int minutes = (int) (mTimeLeft / 60000);
             int seconds = (int) (mTimeLeft % 60000) / 1000;
             minutes = 4 - minutes;              //get time taken by subtracting
-            // time left from time elapsed
-            //NOTE: not sure why it is 4- mins not 5 but works
+                                                // time left from time elapsed
             seconds = 60 - seconds;
             String timeLeftText;
             timeLeftText = String.format("%02d mins : %02d seconds",minutes, seconds);
