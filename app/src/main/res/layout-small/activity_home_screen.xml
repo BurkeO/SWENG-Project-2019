@@ -8,10 +8,9 @@
     <!--title of the game displayed on homescreen-->
     <TextView
         android:id="@+id/title"
-        android:layout_width="107dp"
-        android:layout_height="18dp"
-        android:layout_centerInParent="true"
-        android:layout_marginLeft="50dp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_horizontal"
         android:layout_marginTop="5dp"
         android:text="@string/the_turing_game"
         android:textAppearance="@style/TextAppearance.AppCompat.Body1"
@@ -33,6 +32,7 @@
         android:layout_marginStart="60dp"
         android:layout_marginTop="24dp"
         android:background="@color/colorPrimary"
+        android:gravity="center_horizontal"
         android:text="@string/start_game"
         android:textColor="@color/bg_bubble_watbot"
         android:textSize="6sp"

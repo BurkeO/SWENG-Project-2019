@@ -11,26 +11,44 @@
         android:id="@+id/title"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_centerInParent="true"
-        android:layout_marginStart="140dp"
+        android:gravity="center_horizontal"
         android:layout_marginTop="10dp"
         android:text="@string/contact_us"
         android:textAppearance="@style/TextAppearance.AppCompat.Body1"
         android:textColor="@color/colorPrimary"
         android:textSize="24sp"
         android:textStyle="bold"
-        app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"/>
 
     <!-- text "What email would you like us to respond to"?-->
     <TextView
         android:id="@+id/textView"
-        android:layout_width="328dp"
-        android:layout_height="34dp"
-        android:layout_marginStart="40dp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:gravity="center_horizontal"
         android:layout_marginBottom="20dp"
         android:text="@string/give_us_your_email"
-        app:layout_constraintBottom_toTopOf="@+id/editText3"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/title"
+        app:layout_constraintStart_toStartOf="parent" />
+
+
+    <!-- box to enter email into-->
+    <EditText
+        android:id="@+id/editText3"
+        style="@style/Widget.AppCompat.AutoCompleteTextView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:gravity="center_horizontal"
+        android:layout_marginBottom="10dp"
+        android:ems="10"
+        android:inputType="textEmailAddress"
+        android:hint="@string/email"
+        android:singleLine="false"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/textView"
         app:layout_constraintStart_toStartOf="parent" />
 
 
@@ -39,38 +57,26 @@
         android:id="@+id/editText2"
         android:layout_width="380dp"
         android:layout_height="300dp"
-        android:layout_marginStart="15dp"
+        android:gravity="center_horizontal"
         android:layout_marginBottom="60dp"
         android:ems="10"
+        android:hint="@string/message"
         android:inputType="textMultiLine"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent" />
-
-    <!-- box to enter email into-->
-    <EditText
-        android:id="@+id/editText3"
-        style="@style/Widget.AppCompat.AutoCompleteTextView"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="100dp"
-        android:layout_marginBottom="80dp"
-        android:ems="10"
-        android:inputType="textEmailAddress"
-        android:singleLine="false"
-        app:layout_constraintBottom_toTopOf="@+id/editText2"
-        app:layout_constraintStart_toStartOf="parent" />
-
 
     <!--button to confirm sending a message to us-->
     <Button
         android:id="@+id/send_button"
         android:layout_width="112dp"
         android:layout_height="wrap_content"
-        android:layout_marginStart="145dp"
+        android:gravity="center_horizontal"
         android:layout_marginTop="8dp"
         android:background="@color/colorPrimary"
         android:text="@string/send"
+        android:textColor="@color/bg_bubble_watbot"
         android:textSize="18sp"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/editText2" />
 

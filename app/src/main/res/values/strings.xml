@@ -26,6 +26,8 @@
     <string name="give_us_your_email">What email would you like us to respond to you on?</string>
     <string name="query_received">Your message was receieved! We will get back to you as soon as possible.</string>
     <string name="thankyou">Thank You</string>
+    <string name="email">Enter email ...</string>
+    <string name="message">Enter message ...</string>
 
     <!--Strings related to the guess screen-->
     <string name="you_just_chatted_with_a">You just chatted with a...</string>

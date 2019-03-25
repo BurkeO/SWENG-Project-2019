@@ -8,14 +8,15 @@
 
     <TextView
         android:id="@+id/textView2"
-        android:layout_width="301dp"
-        android:layout_height="125dp"
-        android:layout_marginStart="55dp"
-        android:layout_marginTop="70dp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:gravity="center_horizontal"
+        android:layout_marginTop="10dp"
         android:fontFamily="sans-serif"
         android:text="@string/query_received"
         android:textAlignment="center"
         android:textSize="22sp"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
@@ -23,11 +24,12 @@
         android:id="@+id/textView3"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="120dp"
+        android:gravity="center_horizontal"
         android:layout_marginTop="10dp"
         android:fontFamily="serif-monospace"
         android:text="@string/thankyou"
         android:textSize="32sp"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/imageView3" />
 
@@ -35,9 +37,10 @@
         android:id="@+id/imageView3"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="65dp"
+        android:gravity="center_horizontal"
         android:layout_marginTop="20dp"
         android:src="@drawable/smiley"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/textView2" />
 
