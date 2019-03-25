@@ -27,45 +27,45 @@
     <Button
         android:id="@+id/new_game_button"
         style="@style/Widget.AppCompat.Button"
-        android:layout_width="50dp"
-        android:layout_height="15dp"
+        android:layout_width="68dp"
+        android:layout_height="22dp"
         android:layout_below="@+id/title"
-        android:layout_marginStart="67dp"
-        android:layout_marginTop="30dp"
+        android:layout_marginStart="60dp"
+        android:layout_marginTop="24dp"
         android:background="@color/colorPrimary"
         android:text="@string/start_game"
         android:textColor="@color/bg_bubble_watbot"
-        android:textSize="8sp"
+        android:textSize="6sp"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/imageView" />
 
     <!--button pressed to go to the settings screen.-->
     <Button
         android:id="@+id/contact_button"
-        android:layout_width="50dp"
+        android:layout_width="36dp"
         android:layout_height="15dp"
         android:layout_centerHorizontal="true"
-        android:layout_marginStart="67dp"
+        android:layout_marginStart="78dp"
         android:layout_marginTop="10dp"
         android:background="@color/colorPrimary"
         android:text="@string/contact"
         android:textColor="@color/bg_bubble_watbot"
-        android:textSize="8sp"
+        android:textSize="6sp"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/new_game_button" />
 
     <!--button pressed to get in contact with the app makers an take you to the contact screen.-->
     <Button
         android:id="@+id/settings_button"
-        android:layout_width="50dp"
+        android:layout_width="36dp"
         android:layout_height="15dp"
         android:layout_centerHorizontal="true"
-        android:layout_marginStart="67dp"
+        android:layout_marginStart="78dp"
         android:layout_marginTop="10dp"
         android:background="@color/colorPrimary"
         android:text="@string/settings"
         android:textColor="@color/bg_bubble_watbot"
-        android:textSize="8sp"
+        android:textSize="6sp"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/contact_button" />
 
@@ -82,13 +82,13 @@
 
     <TextView
         android:id="@+id/scoreHomeScreen"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="70dp"
-        android:layout_marginTop="13dp"
+        android:layout_width="40dp"
+        android:layout_height="13dp"
+        android:layout_marginStart="73dp"
+        android:layout_marginTop="10dp"
         android:text="TextView"
         android:textAlignment="center"
-        android:textSize="10sp"
+        android:textSize="8sp"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/imageView" />
 
