@@ -1,16 +1,16 @@
 package com.example.vmac.chatbot;
 
 import android.content.Intent;
-import android.net.Uri;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.Toast;
 
 import com.example.vmac.WatBot.R;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 
 public class contact extends AppCompatActivity {
 
@@ -33,9 +33,9 @@ public class contact extends AppCompatActivity {
             @Override
             public void onClick(View v)
             {
-                sendContactMessage();
+                uploadContactMessage();
                 // switch to the new activity is disabled as stops the user from successfully sending an email
-                //openConfirmQueryScreen();
+                openConfirmQueryScreen();
             }
         });
     }
@@ -48,40 +48,24 @@ public class contact extends AppCompatActivity {
     }
 
     /**
-     * Method that initiates the sending of an email using the fields from the layout.
-     * The user is promtped to select the email carrier and go to the email app.
+     * Method that uploads the feedback into the database.
      * created: 30/03/2019 by J.Cistiakovas
-     * last modified: 30/03/2019 by J.Cistiakovas - changed startACtivity() to startActivityForResult()
+     * last modified: 30/03/2019 by J.Cistiakovas
      */
-    private void sendContactMessage(){
-        Log.d(TAG, "sending an email");
+    private void uploadContactMessage(){
         String message = mMessage.getText().toString().trim();
         String email = mContactEmail.getText().toString().trim();
-        String[] TO = {""};
-        TO[0] = email;
-        Intent i = new Intent(Intent.ACTION_SENDTO);
-        i.setType("message/rfc822");
-        i.setData(Uri.parse("mailto:" + email));
-        //i.putExtra(Intent.EXTRA_EMAIL, TO);
-        i.putExtra(Intent.EXTRA_SUBJECT, "feedback");
-        i.putExtra(Intent.EXTRA_TEXT, message);
 
-        try{
-            startActivityForResult(Intent.createChooser(i,"Send mail..."),EMAIL_CODE);
-            Log.d(TAG, "finished sendng email");
-            //finish();
-        } catch (android.content.ActivityNotFoundException e){
-            Toast.makeText(this,"Failed to send an email", Toast.LENGTH_SHORT);
-            e.printStackTrace();
-        }
+        FirebaseAuth Auth = FirebaseAuth.getInstance();
+        FirebaseDatabase Database = FirebaseDatabase.getInstance();
+        DatabaseReference DatabaseRefFeedback = Database.getReference("feedback");
+        DatabaseReference newFeedback = DatabaseRefFeedback.push();
+        newFeedback.child("message").setValue(message);
+        newFeedback.child("reply-email").setValue(email);
+
+
     }
 
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        if(requestCode == EMAIL_CODE) {
-            // start a new activity
-            openConfirmQueryScreen();
-        }
-    }
 
 
     }

@@ -2,27 +2,31 @@ package com.example.vmac.chatbot;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
+import android.support.annotation.NonNull;
+
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.Toolbar;
-import android.util.JsonReader;
-import android.util.JsonWriter;
+
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
-import android.widget.Toast;
+
 
 import com.example.vmac.WatBot.MainActivity;
 import com.example.vmac.WatBot.R;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
+import com.google.firebase.FirebaseApp;
+import com.google.firebase.auth.AuthResult;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
-import java.io.FileReader;
-import java.io.FileWriter;
+
 import java.io.IOException;
 
 public class home_screen extends AppCompatActivity implements View.OnClickListener {
@@ -33,6 +37,11 @@ public class home_screen extends AppCompatActivity implements View.OnClickListen
     static final String SCORE_DIR = "score";
     private int mScore;
     private TextView mScoreTextView;
+
+    //Firebase atributes
+    private FirebaseAuth mAuth;
+    private FirebaseUser mCurrentUser;
+    private FirebaseAuth.AuthStateListener mAuthListener;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -52,6 +61,8 @@ public class home_screen extends AppCompatActivity implements View.OnClickListen
         mScoreTextView = findViewById(R.id.scoreHomeScreen);
         mScore = getScore();
         mScoreTextView.setText(new Integer(mScore).toString());
+
+        createFirebaseServices();
     }
 
     //methods bringing user to screen depending on which button they clicked
@@ -92,6 +103,43 @@ public class home_screen extends AppCompatActivity implements View.OnClickListen
         //update the score on resume
         mScore = getScore();
         mScoreTextView.setText(new Integer(mScore).toString());
+    }
+
+    /**
+     * Method to initialise Firebase services, might e needed for use in other activities
+     * created: 30/03/2019 by J.Cistiakovas
+     * last modified:
+     */
+    private void createFirebaseServices() {
+        //Firebase anonymous Auth
+        FirebaseApp.initializeApp(this);
+        mAuth = FirebaseAuth.getInstance();
+        //listener that listens for change in the Auth state
+        mAuthListener = new FirebaseAuth.AuthStateListener() {
+            @Override
+            public void onAuthStateChanged(@NonNull final FirebaseAuth firebaseAuth) {
+                FirebaseUser currentUser = firebaseAuth.getCurrentUser();
+                //check if user is already signed in
+                if (currentUser == null) {
+                    mAuth.signInAnonymously().addOnCompleteListener(home_screen.this, new OnCompleteListener<AuthResult>() {
+                        @Override
+                        public void onComplete(@NonNull Task<AuthResult> task) {
+                            if (task.isSuccessful()) {
+                                mCurrentUser = firebaseAuth.getCurrentUser();
+                            } else {
+                                //TODO: fail the program or do something here
+                            }
+                        }
+                    });
+                } else {
+                    //user is signed in - happy days
+                    mCurrentUser = currentUser;
+                    Log.d(TAG, "User already signed in. User id : " + mCurrentUser.getUid());
+
+                }
+            }
+        };
+        mAuth.addAuthStateListener(mAuthListener);
     }
 
     /**
