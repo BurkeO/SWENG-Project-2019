@@ -30,13 +30,13 @@
         android:layout_marginBottom="4dp"
         android:text="@string/give_us_your_email"
         android:textSize="6sp"
-        app:layout_constraintBottom_toTopOf="@+id/editText3"
+        app:layout_constraintBottom_toTopOf="@+id/contactEmail"
         app:layout_constraintStart_toStartOf="parent" />
 
 
     <!-- box to enter the query/contact message into-->
     <EditText
-        android:id="@+id/editText2"
+        android:id="@+id/contactMessage"
         android:layout_width="165dp"
         android:layout_height="100dp"
         android:layout_marginStart="16dp"
@@ -48,7 +48,7 @@
 
     <!-- box to enter email into-->
     <EditText
-        android:id="@+id/editText3"
+        android:id="@+id/contactEmail"
         style="@style/Widget.AppCompat.AutoCompleteTextView"
         android:layout_width="100dp"
         android:layout_height="18dp"
@@ -57,7 +57,7 @@
         android:ems="10"
         android:inputType="textEmailAddress"
         android:singleLine="false"
-        app:layout_constraintBottom_toTopOf="@+id/editText2"
+        app:layout_constraintBottom_toTopOf="@+id/contactMessage"
         app:layout_constraintStart_toStartOf="parent" />
 
 
@@ -72,5 +72,5 @@
         android:text="@string/send"
         android:textSize="10sp"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/editText2" />
+        app:layout_constraintTop_toBottomOf="@+id/contactMessage" />
 </android.support.constraint.ConstraintLayout>
