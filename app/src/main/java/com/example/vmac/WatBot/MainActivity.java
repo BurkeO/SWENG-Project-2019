@@ -1013,6 +1013,7 @@ public class MainActivity extends AppCompatActivity {
             timeLeftText = String.format("%02d mins : %02d seconds",minutes, seconds);
             human_results_intent.putExtra("timeTaken",timeLeftText);
             human_results_intent.putExtra("guessedRight", guessedRight);
+            endGame();
             startActivity(human_results_intent);
         }
         else //if bot
