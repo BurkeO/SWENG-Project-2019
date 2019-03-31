@@ -431,7 +431,7 @@ public class MainActivity extends AppCompatActivity {
                             "text".equals(response.getOutput().getGeneric().get(0).getResponseType())) {
                         outMessage.setMessage(response.getOutput().getGeneric().get(0).getText());
                         outMessage.setId("2");
-
+                        outMessage.setType("bot");
                         messageArrayList.add(outMessage);
 
                         // speak the message
