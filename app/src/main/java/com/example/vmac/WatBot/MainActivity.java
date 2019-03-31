@@ -432,6 +432,9 @@ public class MainActivity extends AppCompatActivity {
                         outMessage.setMessage(response.getOutput().getGeneric().get(0).getText());
                         outMessage.setId("2");
                         outMessage.setType("bot");
+                        //add random delay to make it seem more like a human responding
+                        double delay = Math.random() * (1000000000 * outMessage.getMessage().length()) + 1000000000;
+                        for(int i = 0; i < delay; i++){}
                         messageArrayList.add(outMessage);
 
                         // speak the message
