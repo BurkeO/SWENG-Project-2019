@@ -72,6 +72,7 @@ public class MainActivity extends AppCompatActivity {
     private RecyclerView recyclerView;
     private ChatAdapter mAdapter;
     private ArrayList messageArrayList;
+    private ArrayList completeGames;
     private EditText inputMessage;
     private ImageButton btnSend;
     private ImageButton btnRecord;
@@ -163,6 +164,7 @@ public class MainActivity extends AppCompatActivity {
         mTimerTime = findViewById(R.id.timerTime);
 
         messageArrayList = new ArrayList<>();
+        completeGames = new ArrayList<String>();
         //mAdapter = new ChatAdapter(messageArrayList,myId);
         microphoneHelper = new MicrophoneHelper(this);
 
@@ -729,7 +731,8 @@ public class MainActivity extends AppCompatActivity {
      * If no chatrooms are available the user will create one and wait to see if someone
      * joins. If no one joins the user will be matched with a bot and the game will start.
      * created: 11/03/2019 by C.Coady
-     * last modified: 24/03/2019 by C.Coady
+     * last modified: 24/03/2019 by C.Coady - added a naive way of ensuring old games are removed
+     * from the database
      */
     private void matchmaking() {
         //initialse the firebase database
@@ -742,6 +745,7 @@ public class MainActivity extends AppCompatActivity {
         ValueEventListener availableGameListener = new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot availableGame) {
+                int completeGameCount = 0;
                 for (DataSnapshot game: availableGame.getChildren()) {
                     String key = game.getKey();
                     String status = game.getValue().toString();
@@ -750,6 +754,13 @@ public class MainActivity extends AppCompatActivity {
                         chatRoomId = key;
                         showToast("Joined game " + chatRoomId, Toast.LENGTH_LONG);
                     }
+                    else if(status.equals("complete")) {
+                        completeGames.add(key);
+                        completeGameCount++;
+                    }
+                }
+                if(completeGameCount > 0){
+                    deleteFinishedGames();
                 }
             }
 
@@ -859,6 +870,28 @@ public class MainActivity extends AppCompatActivity {
             //publish the message in an chatRooms
             chatRef.setValue(message);
             chatRef = mDatabaseRef.child("chatRooms").child(chatRoomId);
+        }
+    }
+
+    /**
+     * This method loops through the completeGames arrayList and deletes
+     * the chat room id corresponding to the deleted game from the
+     * database. This will prevent the list of elements in available games
+     * from getting too big. May have potential problems if a game has just
+     * ended and new player searching for a game deletes the chatroom before
+     * both players of that game have guessed. A possible solution would be
+     * to introduce timestamps to each chatroom, then if the chatroom is more
+     * than a certain age, it can be assumed that the game is over and then
+     * deleted.
+     * created: 01/04/2019 by C.Coady
+     * last modified: 01/04/2019 by C.Coady
+     */
+    private void deleteFinishedGames(){
+        //get a reference to the chat rooms section of the database
+        DatabaseReference chatRef = mDatabaseRef.child("availableGames");
+        for(int i = 0; i < completeGames.size(); i++){
+            //remove the chatroom from availableGames
+            chatRef.child((String)completeGames.get(i)).removeValue();
         }
     }
 
