@@ -118,9 +118,13 @@ public class MainActivity extends AppCompatActivity {
     private String myId;
     private String chatRoomId;
     private int mGameStatus;
+    private int mPrevGameStatus;
     private static final int GAME_NOT_ACTIVE = 1;
     private static final int GAME_ACTIVE = 5;
-    private static final int GAME_STOPPED = 5;
+    private static final int GAME_STOPPED = 15;
+    private static final int GAME_STARTING = 25;
+    private static final int GAME_PAUSED = 35;
+    private static final int GAME_NULL = 0;
 
     //UI elements
     private ProgressBar mProgressBar;
@@ -187,6 +191,7 @@ public class MainActivity extends AppCompatActivity {
         mProgressBar.setVisibility(View.VISIBLE);
 
         mGameStatus = GAME_NOT_ACTIVE;
+        mPrevGameStatus = GAME_NULL;
         //initiate game parameters
         mTimerRunning = false;
         messageNum = 0;
@@ -308,6 +313,23 @@ public class MainActivity extends AppCompatActivity {
         super.onStart();
         //initiate sign in check
         //mAuthListener.onAuthStateChanged(mAuth);
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        detachListeners();
+//        mPrevGameStatus = mGameStatus;
+//        mGameStatus = GAME_PAUSED;
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        attachListeners();
+//        if(mPrevGameStatus != GAME_NULL) {
+//            mGameStatus = mPrevGameStatus;
+//        }
     }
 
     // Speech-to-Text Record Audio permission
@@ -1047,11 +1069,15 @@ public class MainActivity extends AppCompatActivity {
 
         //change the states
         mCountDownTimer.cancel();
-        mGameStatus = GAME_STOPPED;
         mTimerRunning = false;
-        showToast("Timer stop pressed", Toast.LENGTH_SHORT);
+        //return if game was not active. This will prevent from unexpected effect in case
+        // listener fires when activity is not in foreground
+//        if(mGameStatus != GAME_ACTIVE){
+//            return;
+//        }
+        mGameStatus = GAME_STOPPED;
+        //showToast("Timer stop pressed", Toast.LENGTH_SHORT);
         Log.d(TAG,"Timer stop pressed.");
-
         //Takes to results screen saying if it was a bot or human
         if(isHumanGame)  //if human
         {
@@ -1102,6 +1128,18 @@ public class MainActivity extends AppCompatActivity {
         }
         if(mChatRoomMessageListener != null) {
             mDatabaseRef.child("chatRooms").removeEventListener(mChatRoomMessageListener);
+        }
+    }
+
+    private void attachListeners(){
+        if(mCurrentGameStatusListener != null) {
+            mDatabaseRef.child("availableGames").addValueEventListener(mCurrentGameStatusListener);
+        }
+        if(mAvailableGameListener != null) {
+            mDatabaseRef.child("availableGames").addListenerForSingleValueEvent(mAvailableGameListener);
+        }
+        if(mChatRoomMessageListener != null) {
+            mDatabaseRef.child("chatRooms").addChildEventListener(mChatRoomMessageListener);
         }
     }
 
