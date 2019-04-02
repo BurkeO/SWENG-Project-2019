@@ -117,7 +117,7 @@ public class MainActivity extends AppCompatActivity {
     private int messageNum;
     private String myId;
     private String chatRoomId;
-    private int gameStatus;
+    private int mGameStatus;
     private static final int GAME_NOT_ACTIVE = 1;
     private static final int GAME_ACTIVE = 5;
     private static final int GAME_STOPPED = 5;
@@ -186,7 +186,7 @@ public class MainActivity extends AppCompatActivity {
         recyclerView.setVisibility(View.GONE);
         mProgressBar.setVisibility(View.VISIBLE);
 
-        gameStatus = GAME_NOT_ACTIVE;
+        mGameStatus = GAME_NOT_ACTIVE;
         //initiate game parameters
         mTimerRunning = false;
         messageNum = 0;
@@ -212,7 +212,8 @@ public class MainActivity extends AppCompatActivity {
                         mAdapter = new ChatAdapter(messageArrayList, myId);
                         recyclerView.setAdapter(mAdapter);
                         mAdapter.notifyDataSetChanged();
-                        gameStatus = GAME_ACTIVE;
+                        //TODO: see this
+                        //mGameStatus = GAME_ACTIVE;
 
 
 
@@ -220,7 +221,7 @@ public class MainActivity extends AppCompatActivity {
                 });
                 //start the timer
                 //TODO: synchronise time
-                startTimer();
+                //startTimer();
             }
         }).start();
         int permission = ContextCompat.checkSelfPermission(this,
@@ -253,7 +254,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 //only send the message if game is active
-                if (checkInternetConnection() && gameStatus == GAME_ACTIVE) {
+                if (checkInternetConnection() && mGameStatus == GAME_ACTIVE) {
                     sendMessage();
                 }
             }
@@ -262,7 +263,7 @@ public class MainActivity extends AppCompatActivity {
         btnRecord.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (gameStatus == GAME_ACTIVE) {
+                if (mGameStatus == GAME_ACTIVE) {
                     recordMessage();
                 }
             }
@@ -717,6 +718,9 @@ public class MainActivity extends AppCompatActivity {
                         //make the user guess now
                         showToast("the game is now over", Toast.LENGTH_LONG);
                         stopTimer();
+                    } else if (gameState.equals("full") && mGameStatus == GAME_NOT_ACTIVE){
+                        mGameStatus = GAME_ACTIVE;
+                        startTimer();
                     }
                 }
             }
@@ -971,7 +975,7 @@ public class MainActivity extends AppCompatActivity {
      */
     //TODO: save the score
     private void timerStartStop(){
-        if(mTimerRunning && gameStatus==GAME_ACTIVE){
+        if(mTimerRunning && mGameStatus==GAME_ACTIVE){
             //stop timer
             stopTimer();
         }
@@ -1020,6 +1024,9 @@ public class MainActivity extends AppCompatActivity {
      * last modified: 14/03/2019 by J.Cistiakovas
      */
     private void updateTime(){
+        if(mGameStatus != GAME_ACTIVE){
+            return;
+        }
         //change the string
         int minutes = (int) mTimeLeft / 60000;
         int seconds = (int) (mTimeLeft % 60000) / 1000;
@@ -1040,7 +1047,7 @@ public class MainActivity extends AppCompatActivity {
 
         //change the states
         mCountDownTimer.cancel();
-        gameStatus = GAME_STOPPED;
+        mGameStatus = GAME_STOPPED;
         mTimerRunning = false;
         showToast("Timer stop pressed", Toast.LENGTH_SHORT);
         Log.d(TAG,"Timer stop pressed.");
