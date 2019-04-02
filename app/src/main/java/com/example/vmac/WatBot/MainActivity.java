@@ -332,6 +332,14 @@ public class MainActivity extends AppCompatActivity {
 //        }
     }
 
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        if(mCountDownTimer != null) {
+            mCountDownTimer.cancel();
+        }
+    }
+
     // Speech-to-Text Record Audio permission
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
