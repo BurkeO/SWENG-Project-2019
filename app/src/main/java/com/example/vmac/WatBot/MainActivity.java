@@ -887,11 +887,13 @@ public class MainActivity extends AppCompatActivity {
      * last modified: 01/04/2019 by C.Coady
      */
     private void deleteFinishedGames(){
-        //get a reference to the chat rooms section of the database
-        DatabaseReference chatRef = mDatabaseRef.child("availableGames");
-        for(int i = 0; i < completeGames.size(); i++){
-            //remove the chatroom from availableGames
-            chatRef.child((String)completeGames.get(i)).removeValue();
+        if(completeGames != null) {
+            //get a reference to the chat rooms section of the database
+            DatabaseReference chatRef = mDatabaseRef.child("availableGames");
+            for(int i = 0; i < completeGames.size(); i++){
+                //remove the chatroom from availableGames
+                chatRef.child((String)completeGames.get(i)).removeValue();
+            }
         }
     }
 
