@@ -42,6 +42,8 @@ import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.MutableData;
+import com.google.firebase.database.Transaction;
 import com.google.firebase.database.ValueEventListener;
 import com.ibm.watson.developer_cloud.android.library.audio.MicrophoneHelper;
 import com.ibm.watson.developer_cloud.android.library.audio.MicrophoneInputStream;
@@ -95,6 +97,11 @@ public class MainActivity extends AppCompatActivity {
     private FirebaseAuth mAuth;
     private FirebaseUser mCurrentUser;
     private FirebaseAuth.AuthStateListener mAuthListener;
+
+    //Firebase listeners
+    ValueEventListener mCurrentGameStatusListener;
+    ValueEventListener mAvailableGameListener;
+    ChildEventListener mChatRoomMessageListener;
 
     //firebase realtime database
     private FirebaseDatabase mDatabase;
@@ -210,6 +217,7 @@ public class MainActivity extends AppCompatActivity {
                     }
                 });
                 //start the timer
+                //TODO: synchronise time
                 startTimer();
             }
         }).start();
@@ -693,7 +701,7 @@ public class MainActivity extends AppCompatActivity {
         //Get a reference to the availableGames section of the database
         final DatabaseReference currentGameRef = mDatabaseRef.child("availableGames");
         //Create a new listener to listen for changes in the game state
-        ValueEventListener currentGameStatusListener = new ValueEventListener() {
+        mCurrentGameStatusListener = new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 //if we are currently in a game
@@ -703,6 +711,7 @@ public class MainActivity extends AppCompatActivity {
                     if(gameState.equals("complete")){
                         //make the user guess now
                         showToast("the game is now over", Toast.LENGTH_LONG);
+                        stopTimer();
                     }
                 }
             }
@@ -713,7 +722,7 @@ public class MainActivity extends AppCompatActivity {
             }
         };
         //Attach the listener to the database reference
-        currentGameRef.addValueEventListener(currentGameStatusListener);
+        currentGameRef.addValueEventListener(mCurrentGameStatusListener);
     }
 
 
@@ -736,7 +745,7 @@ public class MainActivity extends AppCompatActivity {
         isHumanGame = true;
         //mDatabaseRef = mDatabase.getReference();
         final DatabaseReference availableGameRef = mDatabaseRef.child("availableGames");
-        ValueEventListener availableGameListener = new ValueEventListener() {
+        mAvailableGameListener = new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot availableGame) {
                 for (DataSnapshot game: availableGame.getChildren()) {
@@ -755,7 +764,7 @@ public class MainActivity extends AppCompatActivity {
                 //error loading from the database
             }
         };
-        availableGameRef.addListenerForSingleValueEvent(availableGameListener);
+        availableGameRef.addListenerForSingleValueEvent(mAvailableGameListener);
         //start a listener to see if the game has ended
         gameState();
         //wait for a bit to read from the database
@@ -811,7 +820,7 @@ public class MainActivity extends AppCompatActivity {
     private void loadMessages(){
         if(isHumanGame){
             DatabaseReference messageRef = mDatabaseRef.child("chatRooms");
-            messageRef.child(chatRoomId).addChildEventListener(new ChildEventListener() {
+            mChatRoomMessageListener = new ChildEventListener() {
                 // TODO: not load previous conversation, possibly use timestamps
                 @Override
                 public void onChildAdded(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
@@ -834,7 +843,8 @@ public class MainActivity extends AppCompatActivity {
                 public void onChildMoved(@NonNull DataSnapshot dataSnapshot, @Nullable String s) { }
                 @Override
                 public void onCancelled(@NonNull DatabaseError databaseError) { }
-            });
+            };
+            messageRef.child(chatRoomId).addChildEventListener(mChatRoomMessageListener);
         }
     }
 
@@ -1014,6 +1024,7 @@ public class MainActivity extends AppCompatActivity {
             human_results_intent.putExtra("timeTaken",timeLeftText);
             human_results_intent.putExtra("guessedRight", guessedRight);
             endGame();
+            detachListeners();
             startActivity(human_results_intent);
         }
         else //if bot
@@ -1031,7 +1042,21 @@ public class MainActivity extends AppCompatActivity {
             bot_results_intent.putExtra("timeTaken",timeLeftText);
             bot_results_intent.putExtra("guessedRight", guessedRight);
             endGame();
+            detachListeners();
             startActivity(bot_results_intent);
+        }
+    }
+
+    private void detachListeners(){
+
+        if(mCurrentGameStatusListener != null) {
+            mDatabaseRef.child("availableGames").removeEventListener(mCurrentGameStatusListener);
+        }
+        if(mAvailableGameListener != null) {
+            mDatabaseRef.child("availableGames").removeEventListener(mAvailableGameListener);
+        }
+        if(mChatRoomMessageListener != null) {
+            mDatabaseRef.child("chatRooms").removeEventListener(mChatRoomMessageListener);
         }
     }
 
