@@ -18,11 +18,24 @@
         android:label="@string/app_name"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name="com.example.vmac.chatbot.results_2"></activity>
-        <activity android:name="com.example.vmac.chatbot.results" />
-        <activity android:name="com.example.vmac.chatbot.confirm_query_received" />
-        <activity android:name="com.example.vmac.chatbot.settings" />
-        <activity android:name="com.example.vmac.chatbot.contact" />
+        <activity
+            android:name="com.example.vmac.chatbot.results_2"
+            android:screenOrientation="portrait"/>
+        <activity
+            android:name="com.example.vmac.chatbot.results"
+            android:screenOrientation="portrait"/>
+        <activity
+            android:name="com.example.vmac.chatbot.confirm_query_received"
+            android:screenOrientation="portrait"/>
+        <activity
+            android:name="com.example.vmac.chatbot.settings"
+            android:screenOrientation="portrait"/>
+        <activity
+            android:name="com.example.vmac.chatbot.contact"
+            android:screenOrientation="portrait"/>
+        <activity
+            android:name="com.example.vmac.chatbot.genericResults"
+            android:screenOrientation="portrait"/>
         <activity
             android:name="com.example.vmac.chatbot.home_screen"
             android:screenOrientation="portrait"
