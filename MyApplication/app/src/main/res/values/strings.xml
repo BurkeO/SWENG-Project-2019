@@ -1,6 +1,0 @@
-<resources>
-    <string name="app_name">My Application</string>
-    <string name="the_turing_game">The Turing Game</string>
-    <string name="start_game">Start New Game</string>
-    <string name="send_message">Send</string>
-</resources>
