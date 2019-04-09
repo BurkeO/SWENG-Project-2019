@@ -24,10 +24,11 @@
 
     <Switch
         android:id="@+id/switch1"
-        android:layout_width="366dp"
+        android:layout_width="0dp"
         android:layout_height="40dp"
         android:layout_marginStart="30dp"
         android:layout_marginTop="250dp"
+        android:layout_marginEnd="30dp"
         android:checked="false"
         android:lineSpacingExtra="30sp"
         android:showText="false"
@@ -35,16 +36,18 @@
         android:switchTextAppearance="@style/TextAppearance.AppCompat"
         android:text="@string/notifications"
         android:textAlignment="viewStart"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        tools:checked="false"/>
+        tools:checked="false" />
 
     <Switch
         android:id="@+id/switch2"
-        android:layout_width="366dp"
+        android:layout_width="0dp"
         android:layout_height="40dp"
         android:layout_marginStart="30dp"
         android:layout_marginTop="325dp"
+        android:layout_marginEnd="30dp"
         android:checked="false"
         android:lineSpacingExtra="30sp"
         android:showText="false"
@@ -52,8 +55,9 @@
         android:switchTextAppearance="@style/TextAppearance.AppCompat"
         android:text="@string/mic_access"
         android:textAlignment="viewStart"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        tools:checked="false"/>
+        tools:checked="false" />
 
 </android.support.constraint.ConstraintLayout>
