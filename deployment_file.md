@@ -1,7 +1,11 @@
-# SWENG-Project-2019
-Repo for the group programming project of 2019 @ TCD  
----- Add Description of how to get project up and running with other accounts tied to watson and firebase ----
+# Deployment file
+## How to install:
+  - Install an APK provided on an Android system with Android version >= 5.0
+  - Or build a project using Android Studio
 
+## Dependencies:
+  - Google Firebase including Realtime Database, Authentication
+  - IBM Watson Services including Watson Assistant, Text-to-Speech, Speech-to-Text
 
 ## Firebase setup:
 This is required if you wish to link the app to a different firebase account.
